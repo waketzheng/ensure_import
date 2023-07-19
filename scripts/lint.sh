@@ -4,6 +4,7 @@ set -e
 set -x
 
 TARGET="ensure_import"
+[ -f ../pyproject.toml ] && cd ..
 
 isort --check-only $TARGET
 ruff $TARGET
