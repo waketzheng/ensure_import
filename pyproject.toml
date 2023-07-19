@@ -17,6 +17,10 @@ isort = "^5.12.0"
 black = "^23.7.0"
 mypy = "^1.4.1"
 ruff = "^0.0.278"
+pre-commit = "^3.3.3"
+
+[tool.poetry.scripts]
+prepare="ensure_import.prepare:run"
 
 [build-system]
 requires = ["poetry-core"]

@@ -3,10 +3,10 @@
 set -e
 set -x
 
-TARGET="ensure_import"
+checkfiles="ensure_import"
 [ -f ../pyproject.toml ] && cd ..
 
-isort --check-only $TARGET
-ruff $TARGET
-mypy $TARGET
-black --check $TARGET
+((poetry run isort --check-only $checkfiles && poetry run black --check $checkfiles) ||
+  (echo -e "\033[1m Please run './scripts/format.sh' to auto-fix style issues \033[0m" && false)) && \
+poetry run ruff $checkfiles && \
+poetry run mypy $checkfiles

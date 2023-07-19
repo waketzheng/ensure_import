@@ -4,6 +4,6 @@ set -x
 TARGET="ensure_import"
 [ -f ../pyproject.toml ] && cd ..
 
-ruff --fix $TARGET
-black $TARGET
-isort $TARGET
+poetry run ruff --fix $TARGET
+poetry run black $TARGET
+poetry run isort $TARGET

@@ -1,0 +1,7 @@
+repos:
+- repo: local
+  hooks:
+    - id: lint
+      name: lint
+      entry: ./scripts/lint.sh
+      language: script
