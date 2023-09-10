@@ -24,7 +24,10 @@ def test_venv():
             import pytz as pz
             import six
             from dotenv import load_dotenv
-            from tortoise.fields import Field, ForeignKeyField
+            from tortoise.fields import Field
+            from tortoise.fields.relational import (
+                ForeignKeyFieldInstance as ForeignKeyField,
+            )
         if _m.ok:
             break
 
@@ -33,7 +36,7 @@ def test_venv():
     timestamp = os.path.getmtime(six.__file__)
     assert Path(pz.__file__).exists()
     load_dotenv()
-    assert isinstance(ForeignKeyField, Field)
+    assert issubclass(ForeignKeyField, Field)
     if i != 0:
         assert venv_path.exists()
     else:
@@ -44,7 +47,10 @@ def test_venv():
             import pytz as pz
             import six
             from dotenv import load_dotenv
-            from tortoise.fields import ForeignKeyField
+            from tortoise.fields import Field
+            from tortoise.fields.relational import (
+                ForeignKeyFieldInstance as ForeignKeyField,
+            )
         if _m.ok:
             break
 
@@ -52,7 +58,7 @@ def test_venv():
     assert os.path.getmtime(six.__file__) == timestamp
     load_dotenv()
     assert pz is not None
-    assert isinstance(ForeignKeyField, Field)
+    assert issubclass(ForeignKeyField, Field)
     try:
         shutil.rmtree(venv_path)
     except FileNotFoundError:

@@ -1,3 +1,4 @@
+import logging
 import platform
 import re
 import subprocess
@@ -6,21 +7,23 @@ from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Optional, Union
 
+logger = logging.getLogger(__name__)
+
 
 class EnsureImport(AbstractContextManager):
     """Auto install modules if import error.
 
     Usage::
-        >>> for _ range(EnsureImport.retry):
-        ...     with EnsureImport(
+        >>> while (_ei := EnsureImport()).trying:
+        ...     with _ei(
         ...         multipart='python-multipart', dotenv='python-dotenv'
-        ...     ) as _m:
+        ...     ):
         ...         import six
         ...         import multipart
+        ...         import numpy as np
+        ...         from anyio import Path as AioPath
         ...         from dotenv import load_dotenv
         ...         # more imports ...
-        ...     if _m.ok:
-        ...         break
         ...
     """
 
@@ -31,12 +34,76 @@ class EnsureImport(AbstractContextManager):
         "snap7": "python-snap7",
     }
     retry = 30
+    inited = False
+    instances: dict = {}
 
-    def __init__(self, _path: Optional[Path] = None, _exit=True, **kwargs):
+    def __new__(cls, *args, **kwargs):
+        if (key := f"*{args}, **{kwargs}") in cls.instances:
+            return cls.instances[key]
+        obj = cls.instances[key] = super().__new__(cls)
+        return obj
+
+    def __init__(
+        self, _path: Optional[Union[str, Path]] = None, _no_venv=False, _exit=True, **kwargs
+    ):
+        """
+        :Param _path: directory path to append to sys.path
+        :Param _no_venv: do not use `python -m venv venv` to create virtual environment
+        :Param _exit: whether call sys.exit when install error
+        :Param kwargs: package name mapping,  example: doten='python-dotenv'
+        """
+        if self.inited:
+            return
         self._success = True
         self._exit = _exit
+        if isinstance(_path, str):
+            _path = Path(_path)
         self._path = _path
         self._mapping = kwargs
+        self._no_venv = _no_venv
+        self._trying = True
+        self._tried = 0
+        self._py_path = sys.executable
+        self.inited = True
+
+    @property  # Consider to use classpropoerty instead
+    def trying(self) -> bool:
+        if self._tried >= self.retry:
+            self._trying = False
+        else:
+            self._tried += 1
+        if self._trying:
+            return True
+        self._trying = True
+        return False
+
+    def _clear_kw(self, packages) -> None:
+        if packages:
+            for k in ("_path" "_no_venv", "_exit"):
+                if (v := packages.pop(k, None)) is not None:
+                    setattr(self, k, v)
+
+    def __call__(self, **packages) -> "EnsureImport":
+        return self.auto_load(**packages)
+
+    def auto_load(self, **packages) -> "EnsureImport":
+        self._clear_kw(packages)
+        if self._path:
+            self._extend_path(packages)
+        elif self._no_venv:
+            self._just_install(packages)
+        else:
+            self._with_venv(packages)
+        return self
+
+    def _with_venv(self, packages):
+        pass
+
+    def _just_install(self, packages):
+        pass
+
+    def _extend_path(self, packages):
+        pass
 
     @property
     def ok(self) -> bool:
@@ -47,8 +114,11 @@ class EnsureImport(AbstractContextManager):
             self._success = False
             self.run(exc_value)
             return True
+        else:
+            self._trying = False
+            self._success = True
 
-    def run(self, e):
+    def run(self, e) -> None:
         modules = re.findall(r"'([a-zA-Z][0-9a-zA-Z_]+)'", str(e))
         if not modules or "--no-install" in sys.argv:
             raise e
@@ -67,12 +137,12 @@ class EnsureImport(AbstractContextManager):
 
     @staticmethod
     def run_and_echo(cmd: str) -> int:
-        print("--> Executing shell command:\n", cmd, flush=True)
+        logger.info(f"--> Executing shell command:\n {cmd}")
         return subprocess.call(cmd, shell=True)
 
     @staticmethod
     def log_error(action: str) -> None:
-        print(f"ERROR: failed to {action}")
+        logger.error(f"ERROR: failed to {action}")
 
     @staticmethod
     def is_poetry_project(dirpath: Path) -> bool:
@@ -125,8 +195,8 @@ class EnsureImport(AbstractContextManager):
             self.run_and_echo(f"{py} -m pip install --upgrade pip")
             if not self.testing():
                 self.run_and_echo(f"{py} -m pip install ensure_import")
-            lib = list(p.rglob("site-packages"))[0]
-            sys.path.append(lib.as_posix())
+            if (lib := list(p.rglob("site-packages"))[0].as_posix()) not in sys.path:
+                sys.path.append(lib)  # to be optimize: check exists to aviod deplicated pip i
         if self.run_and_echo(f"{py} -m pip install {depends}"):
             self.log_error(f"install {depends}")
             return 2

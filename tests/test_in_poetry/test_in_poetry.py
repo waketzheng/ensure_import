@@ -20,27 +20,33 @@ def test_venv():
             import pytz as pz
             import six
             from dotenv import load_dotenv
-            from tortoise.fields import Field, ForeignKeyField
+            from tortoise.fields import Field
+            from tortoise.fields.relational import (
+                ForeignKeyFieldInstance as ForeignKeyField,
+            )
         if _m.ok:
             break
     assert _m.ok
     timestamp = os.path.getmtime(six.__file__)
     assert Path(pz.__file__).exists()
     load_dotenv()
-    assert isinstance(ForeignKeyField, Field)
+    assert issubclass(ForeignKeyField, Field)
     assert not venv_path.exists()
     for _ in range(EnsureImport.retry):
         with EnsureImport() as _m:
             import pytz as pz
             import six
             from dotenv import load_dotenv
-            from tortoise.fields import Field, ForeignKeyField
+            from tortoise.fields import Field
+            from tortoise.fields.relational import (
+                ForeignKeyFieldInstance as ForeignKeyField,
+            )
         if _m.ok:
             break
     assert _m.ok
     load_dotenv()
     assert pz is not None
-    assert isinstance(ForeignKeyField, Field)
+    assert issubclass(ForeignKeyField, Field)
     assert os.path.getmtime(six.__file__) == timestamp
 
 

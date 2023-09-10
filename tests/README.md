@@ -9,6 +9,6 @@ cd test_in_poetry
 
 - test venv project
 ```bash
-cd test_in_venv/test_in_venv
+cd test_venv/test_venv
 ./test_venv.py
 ```

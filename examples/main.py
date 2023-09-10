@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from ensure_import import EnsureImport
+from ensure_import import EnsureImport as _EI
 
-
-for _ in range(EnsureImport.retry):
-    with EnsureImport() as _m:
+while (_ei := _EI()).trying:
+    with _ei:
         import uvicorn
-        from fastapi import FastAPI
-    if _m.ok:
-        break
+        from fastapi import FastAPI, Request
 
 
 app = FastAPI(title=Path(__file__).parent.name)
 
 
-if __name__ == '__main__':
-    uvicorn.run('main:app')
+@app.get("/")
+async def root(request: Request):
+    return {"dir(request)": dir(request)}
+
+
+if __name__ == "__main__":
+    uvicorn.run(f"{Path(__file__).stem}:app")
