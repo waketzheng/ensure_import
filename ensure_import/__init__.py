@@ -1,3 +1,4 @@
+import importlib
 import logging
 import platform
 import re
@@ -14,7 +15,7 @@ class EnsureImport(AbstractContextManager):
     """Auto install modules if import error.
 
     Usage::
-        >>> while (_ei := EnsureImport()).trying:
+        >>> while _ei := EnsureImport():
         ...     with _ei(
         ...         multipart='python-multipart', dotenv='python-dotenv'
         ...     ):
@@ -36,6 +37,11 @@ class EnsureImport(AbstractContextManager):
     retry = 30
     inited = False
     instances: dict = {}
+
+    @classmethod
+    def reset(cls) -> None:
+        cls.inited = False
+        cls.instances.clear()
 
     def __new__(cls, *args, **kwargs):
         if (key := f"*{args}, **{kwargs}") in cls.instances:
@@ -66,7 +72,7 @@ class EnsureImport(AbstractContextManager):
         self._py_path = sys.executable
         self.inited = True
 
-    @property  # Consider to use classpropoerty instead
+    @property
     def trying(self) -> bool:
         if self._tried >= self.retry:
             self._trying = False
@@ -147,8 +153,8 @@ class EnsureImport(AbstractContextManager):
     def log_error(action: str) -> None:
         logger.error(f"ERROR: failed to {action}")
 
-    @staticmethod
-    def is_poetry_project(dirpath: Path) -> bool:
+    @classmethod
+    def is_poetry_project(cls, dirpath: Path) -> bool:
         toml_name = "pyproject.toml"
         for _ in range(3):
             if dirpath.joinpath(toml_name).exists():
@@ -157,7 +163,11 @@ class EnsureImport(AbstractContextManager):
         else:
             return False
         cmd = "poetry run python -m pip --version"
-        return subprocess.run(cmd.split()).returncode == 0
+        return cls.check_shell(cmd)
+
+    @staticmethod
+    def check_shell(cmd: str) -> bool:
+        return subprocess.run(cmd, shell=True, stderr=subprocess.DEVNULL).returncode == 0
 
     @staticmethod
     def get_poetry_py_path() -> Path:
@@ -195,11 +205,17 @@ class EnsureImport(AbstractContextManager):
                     py = p / "Scripts" / "python.exe"
                 else:
                     py = p / "bin/python"
-            self.run_and_echo(f"{py} -m pip install --upgrade pip")
-            if not self.testing():
-                self.run_and_echo(f"{py} -m pip install ensure_import")
             if (lib := list(p.rglob("site-packages"))[0].as_posix()) not in sys.path:
-                sys.path.append(lib)  # to be optimize: check exists to aviod deplicated pip i
+                sys.path.append(lib)
+                if not self.check_shell(f"{py} -c 'import ensure_import'"):
+                    sys.path.append(Path(__file__).parent.parent.as_posix())
+                try:
+                    importlib.import_module(packages[0])
+                except ImportError:
+                    ...
+                else:
+                    return 0
+            self.run_and_echo(f"{py} -m pip install --upgrade pip")
         if self.run_and_echo(f"{py} -m pip install {depends}"):
             self.log_error(f"install {depends}")
             return 2

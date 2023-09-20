@@ -10,11 +10,14 @@ for _ in range(3):
         TEST_DIR = TEST_DIR.parent
     else:
         break
-sys.path.append(TEST_DIR.parent.as_posix())
+sys.path.insert(0, TEST_DIR.parent.as_posix())
 from ensure_import import EnsureImport
 
 
 def test_venv():
+    if EnsureImport.is_venv():
+        raise AssertionError("Do not run this script in a virtual environment!")
+    origin = sys.path[:]
     venv_path = Path.cwd() / "venv"
     if venv_path.exists():
         shutil.rmtree(venv_path)
@@ -42,6 +45,7 @@ def test_venv():
     else:
         print("It happen to be all packages in system, no need to create venv.")
 
+    EnsureImport.reset()
     for _ in range(EnsureImport.retry):
         with EnsureImport() as _m:
             import pytz as pz
@@ -59,12 +63,36 @@ def test_venv():
     load_dotenv()
     assert pz is not None
     assert issubclass(ForeignKeyField, Field)
+    _teardown(venv_path)
+
+    sys.path = origin
+    EnsureImport.reset()
+    while _ei := EnsureImport():
+        with _ei:
+            import pytz as pz
+            import six
+            import trio
+            from dotenv import load_dotenv
+            from tortoise.fields import Field
+            from tortoise.fields.relational import (
+                ForeignKeyFieldInstance as ForeignKeyField,
+            )
+    assert os.path.getmtime(six.__file__) == timestamp
+    load_dotenv()
+    assert pz is not None
+    assert issubclass(ForeignKeyField, Field)
+    print(f"{trio.__file__ = }")
+    _teardown(venv_path, end=True)
+
+
+def _teardown(venv_path, end=False) -> None:
     try:
         shutil.rmtree(venv_path)
     except FileNotFoundError:
-        print("Do not run this in a virtual environment!")
+        pass
     else:
-        print("Test pass~")
+        if end:
+            print("Test pass~")
 
 
 def main():

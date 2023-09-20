@@ -398,6 +398,30 @@ files = [
 ]
 
 [[package]]
+name = "types-pytz"
+version = "2023.3.1.0"
+description = "Typing stubs for pytz"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-pytz-2023.3.1.0.tar.gz", hash = "sha256:8e7d2198cba44a72df7628887c90f68a568e1445f14db64631af50c3cab8c090"},
+    {file = "types_pytz-2023.3.1.0-py3-none-any.whl", hash = "sha256:a660a38ed86d45970603e4f3b4877c7ba947668386a896fb5d9589c17e7b8407"},
+]
+
+[[package]]
+name = "types-six"
+version = "1.16.21.9"
+description = "Typing stubs for six"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-six-1.16.21.9.tar.gz", hash = "sha256:746e6c25b8c48b3c8ab9efe7f68022839111de423d35ba4b206b88b12d75f233"},
+    {file = "types_six-1.16.21.9-py3-none-any.whl", hash = "sha256:1591a09430a3035326da5fdb71692d0b3cc36b25a440cc5929ca6241f3984705"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.8.0"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -433,4 +457,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "20b52713715dd656afddb8db222a718a086b17c69e458510b11e8955a3cfbc5f"
+content-hash = "c325e97073857ceef315669014a9f9e052e2ee3b9fe682caab9ecbc85b1dda6a"
