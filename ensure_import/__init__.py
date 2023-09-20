@@ -77,6 +77,9 @@ class EnsureImport(AbstractContextManager):
         self._trying = True
         return False
 
+    def __bool__(self) -> bool:
+        return self.trying
+
     def _clear_kw(self, packages) -> None:
         if packages:
             for k in ("_path" "_no_venv", "_exit"):

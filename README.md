@@ -11,14 +11,14 @@ pip install ensure_import
 ```py
 from ensure_import import EnsureImport as _EI
 
-while (_ei := _EI()).trying:
+while _ei := _EI():
     with _ei:
         import uvicorn
         from fastapi import FastAPI
 ```
 - Package name is difference from module name
 ```py
-while (_ei := _EI()).trying:
+while _ei := _EI():
     with _ei(dotenv='python-dotenv', odbc='pyodbc'):
         import numpy as np
         import uvicorn
@@ -29,7 +29,7 @@ while (_ei := _EI()).trying:
 ```
 - Supply module path
 ```py
-while (_ei := _EI('..')).trying:
+while _ei := _EI('..'):
     with _ei:
         import gunicorn
         import uvicorn

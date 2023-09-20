@@ -3,7 +3,7 @@ from pathlib import Path
 
 from ensure_import import EnsureImport as _EI
 
-while (_ei := _EI()).trying:
+while _ei := _EI():
     with _ei:
         import uvicorn
         from fastapi import FastAPI, Request
