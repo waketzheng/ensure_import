@@ -4,23 +4,33 @@ import shutil
 import sys
 from pathlib import Path
 
-TEST_DIR = Path(__file__).parent
-if TEST_DIR.name != "tests":
-    TEST_DIR = TEST_DIR.parent
+WORK_DIR = Path(__file__).parent
+TEST_DIR = WORK_DIR.parent
+for _ in range(3):
+    if TEST_DIR.name != "tests":
+        TEST_DIR = TEST_DIR.parent
+    else:
+        break
 sys.path.insert(0, TEST_DIR.parent.as_posix())
 from ensure_import import EnsureImport
 
 
-def test_poetry():
-    if EnsureImport.is_venv():
-        raise AssertionError("Do not run this script in a virtual environment!")
-    venv_path = Path(__file__).parent / "venv"
-    if venv_path.exists():
-        shutil.rmtree(venv_path)
+def clear():
+    for name in ("venv", ".venv"):
+        venv_path = WORK_DIR / name
+        if venv_path.exists():
+            shutil.rmtree(venv_path)
+    EnsureImport.reset()
+
+
+def run_test():
+    assert WORK_DIR == Path.cwd()
+    clear()
     for _ in range(EnsureImport.retry):
         with EnsureImport() as _m:
             import pytz as pz
             import six
+            import tomli, flit
             from dotenv import load_dotenv
             from tortoise.fields import Field
             from tortoise.fields.relational import (
@@ -32,8 +42,10 @@ def test_poetry():
     timestamp = os.path.getmtime(six.__file__)
     assert Path(pz.__file__).exists()
     load_dotenv()
+    assert tomli != flit
     assert issubclass(ForeignKeyField, Field)
-    assert not venv_path.exists()
+    assert not WORK_DIR.joinpath("venv").exists()
+    assert WORK_DIR.joinpath(".venv").exists()
     EnsureImport.reset()
 
     for _ in range(EnsureImport.retry):
@@ -69,10 +81,13 @@ def test_poetry():
     assert issubclass(ForeignKeyField, Field)
     print(f"{trio.__file__ = }")
     assert os.path.getmtime(six.__file__) == timestamp
+    clear()
 
 
 def main():
-    test_poetry()
+    if EnsureImport.is_venv():
+        raise AssertionError("Do not run this script in a virtual environment!")
+    run_test()
     print("Test pass~")
 
 

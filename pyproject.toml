@@ -20,6 +20,8 @@ ruff = "^0.0.278"
 pre-commit = "^3.3.3"
 types-pytz = "^2023.3.1.0"
 types-six = "^1.16.21.9"
+pytest-mock = "^3.11.1"
+coverage = "^7.3.1"
 
 [tool.poetry.scripts]
 prepare="ensure_import.prepare:run"
@@ -47,4 +49,4 @@ max-line-length = 100
 ignore = ["E501"]
 
 [tool.ruff.per-file-ignores]
-"test_*.py" = ["E402"]
+"_test_*.py" = ["E402"]

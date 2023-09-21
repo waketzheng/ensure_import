@@ -2,9 +2,11 @@
 import os
 import shutil
 import sys
+from contextlib import chdir
 from pathlib import Path
 
-TEST_DIR = Path(__file__).parent
+WORK_DIR = Path(__file__).parent
+TEST_DIR = WORK_DIR.parent
 for _ in range(3):
     if TEST_DIR.name != "tests":
         TEST_DIR = TEST_DIR.parent
@@ -14,11 +16,10 @@ sys.path.insert(0, TEST_DIR.parent.as_posix())
 from ensure_import import EnsureImport
 
 
-def test_venv():
-    if EnsureImport.is_venv():
-        raise AssertionError("Do not run this script in a virtual environment!")
+def run_test():
+    assert Path.cwd() == WORK_DIR
     origin = sys.path[:]
-    venv_path = Path.cwd() / "venv"
+    venv_path = WORK_DIR / "venv"
     if venv_path.exists():
         shutil.rmtree(venv_path)
 
@@ -82,21 +83,22 @@ def test_venv():
     assert pz is not None
     assert issubclass(ForeignKeyField, Field)
     print(f"{trio.__file__ = }")
-    _teardown(venv_path, end=True)
+    _teardown(venv_path)
 
 
-def _teardown(venv_path, end=False) -> None:
+def _teardown(venv_path) -> None:
     try:
         shutil.rmtree(venv_path)
     except FileNotFoundError:
-        pass
-    else:
-        if end:
-            print("Test pass~")
+        ...
 
 
 def main():
-    test_venv()
+    if EnsureImport.is_venv():
+        raise AssertionError("Do not run this script in a virtual environment!")
+    with chdir(WORK_DIR):
+        run_test()
+    print("Test pass~")
 
 
 if __name__ == "__main__":
