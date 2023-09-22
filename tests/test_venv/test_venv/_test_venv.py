@@ -2,31 +2,41 @@
 import os
 import shutil
 import sys
-from contextlib import chdir
+from contextlib import chdir, contextmanager
 from pathlib import Path
 
 WORK_DIR = Path(__file__).parent
-TEST_DIR = WORK_DIR.parent
-for _ in range(3):
-    if TEST_DIR.name != "tests":
-        TEST_DIR = TEST_DIR.parent
-    else:
-        break
-sys.path.insert(0, TEST_DIR.parent.as_posix())
+ROOT = WORK_DIR.parent.parent.parent.parent
+sys.path.insert(0, ROOT.as_posix())
 from ensure_import import EnsureImport
 
 
-def run_test():
-    assert Path.cwd() == WORK_DIR
+@contextmanager
+def lock_sys_path():
     origin = sys.path[:]
-    venv_path = WORK_DIR / "venv"
+    try:
+        yield
+    finally:
+        sys.path = origin
+
+
+@contextmanager
+def sandbox(name="venv"):
+    venv_path = WORK_DIR / name
     if venv_path.exists():
         shutil.rmtree(venv_path)
+    try:
+        yield venv_path
+    finally:
+        _teardown(venv_path)
+        EnsureImport.reset()
 
+
+def _a(venv_path):
     for i in range(EnsureImport.retry):
         with EnsureImport() as _m:
             import pytz as pz
-            import six
+            import ujson, zipp
             from dotenv import load_dotenv
             from tortoise.fields import Field
             from tortoise.fields.relational import (
@@ -34,23 +44,25 @@ def run_test():
             )
         if _m.ok:
             break
-
     assert _m.ok
-    print(f"{six.__file__ = }")
-    timestamp = os.path.getmtime(six.__file__)
-    assert Path(pz.__file__).exists()
+    print(f"{ujson.__file__ = }")
+    assert os.path.getmtime(pz.__file__)
+    assert os.path.getmtime(zipp.__file__)
     load_dotenv()
     assert issubclass(ForeignKeyField, Field)
     if i != 0:
         assert venv_path.exists()
     else:
         print("It happen to be all packages in system, no need to create venv.")
-
     EnsureImport.reset()
+    return os.path.getmtime(ujson.__file__)
+
+
+def _b(venv_path, timestamp):
     for _ in range(EnsureImport.retry):
         with EnsureImport() as _m:
             import pytz as pz
-            import six
+            import ujson
             from dotenv import load_dotenv
             from tortoise.fields import Field
             from tortoise.fields.relational import (
@@ -60,30 +72,42 @@ def run_test():
             break
 
     assert _m.ok
-    assert os.path.getmtime(six.__file__) == timestamp
+    assert os.path.getmtime(ujson.__file__) == timestamp
     load_dotenv()
     assert pz is not None
     assert issubclass(ForeignKeyField, Field)
-    _teardown(venv_path)
 
-    sys.path = origin
-    EnsureImport.reset()
+
+def _c(venv_path):
     while _ei := EnsureImport():
         with _ei:
             import pytz as pz
-            import six
             import trio
+            import ujson
             from dotenv import load_dotenv
             from tortoise.fields import Field
             from tortoise.fields.relational import (
                 ForeignKeyFieldInstance as ForeignKeyField,
             )
-    assert os.path.getmtime(six.__file__) == timestamp
+    assert ujson is not None
     load_dotenv()
     assert pz is not None
     assert issubclass(ForeignKeyField, Field)
     print(f"{trio.__file__ = }")
-    _teardown(venv_path)
+
+
+def run_test():
+    assert Path.cwd() == WORK_DIR
+    with sandbox() as venv_path:
+        with lock_sys_path():
+            timestamp = _a(venv_path)
+
+        with lock_sys_path():
+            _b(venv_path, timestamp)
+
+    with sandbox() as venv_path:
+        with lock_sys_path():
+            _c(venv_path)
 
 
 def _teardown(venv_path) -> None:

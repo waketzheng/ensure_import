@@ -6,7 +6,7 @@ import subprocess
 import sys
 from contextlib import AbstractContextManager
 from pathlib import Path
-from typing import Optional, Union
+from typing import Final, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class EnsureImport(AbstractContextManager):
         "dotenv": "python-dotenv",
         "snap7": "python-snap7",
     }
-    retry = 30
+    retry: Final = 30
     inited = False
     instances: dict = {}
 
