@@ -2,6 +2,7 @@ import sys
 from contextlib import chdir
 from pathlib import Path
 
+from ensure_import import EnsureImport as _EI
 from tests.utils import lock_sys_path
 
 
@@ -25,5 +26,31 @@ def test_poetry(mocker):
             run_test()
 
 
-def test_path(mocker):
-    mocker.patch("ensure_import.EnsureImport.is_venv", return_value=False)
+def test_set_params():
+    # _exit
+    _ei = _EI()
+    assert _ei._exit is True
+    _ei = _EI(_exit=None)
+    assert _ei._exit is True
+    _ei = _ei()
+    assert _ei._exit is True
+    _ei = _ei(_exit=None)
+    assert _ei._exit is True
+    # _workdir
+    _ei = _ei(_workdir=".")
+    assert _ei._workdir == Path(".")
+    # _sys_path, _install, _no_venv
+    _ei = _EI(_install=False)
+    assert _ei._no_venv is True
+    _ei = _EI(_sys_path="../dir")
+    assert _ei._install is False
+    assert _ei._no_venv is True
+
+
+def test_install_failed(mocker):
+    mocker.patch("ensure_import.EnsureImport.install_and_extend_sys_path", return_value=0)
+    while _ei := _EI(_sys_path=None, _workdir=None, _no_venv=True):
+        with _ei:
+            pass
+    assert _ei._tried >= _ei.retry
+    assert _ei._trying is False
