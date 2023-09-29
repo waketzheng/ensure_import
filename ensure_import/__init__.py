@@ -7,9 +7,11 @@ import sys
 from contextlib import AbstractContextManager
 from functools import cached_property
 from pathlib import Path
-from typing import Final, Optional, Union
+from typing import Final, List, Optional, Union
 
 logger = logging.getLogger(__name__)
+
+PathLike = Union[str, Path]
 
 
 class EnsureImport(AbstractContextManager):
@@ -52,11 +54,11 @@ class EnsureImport(AbstractContextManager):
 
     def __init__(
         self,
-        _sys_path: Optional[Union[str, Path]] = None,
-        _workdir: Optional[Union[str, Path]] = None,
+        _sys_path: Optional[Union[PathLike, List[PathLike]]] = None,
+        _workdir: Optional[PathLike] = None,
         _install: Optional[bool] = None,
         _no_venv: Optional[bool] = None,
-        _exit=True,
+        _exit=None,
         **kwargs,
     ):
         """
@@ -91,9 +93,6 @@ class EnsureImport(AbstractContextManager):
         _no_venv=None,
         _exit=True,
     ) -> None:
-        if _exit is None:
-            _exit = True
-        self._exit = _exit
         if isinstance(_workdir, str):
             _workdir = Path(_workdir)
         self._workdir = _workdir
@@ -107,6 +106,9 @@ class EnsureImport(AbstractContextManager):
             else:
                 _no_venv = _sys_path is not None
         self._no_venv = _no_venv
+        if _exit is None:
+            _exit = _sys_path is None
+        self._exit = _exit
 
     @property
     def trying(self) -> bool:
@@ -153,11 +155,25 @@ class EnsureImport(AbstractContextManager):
     def ok(self) -> bool:
         return self._success
 
+    def extend_paths(self, p: Union[PathLike, List[PathLike]]) -> None:
+        if isinstance(p, str):
+            sys.path.append(p)
+        elif isinstance(p, Path):
+            sys.path.append(p.as_posix())
+        elif isinstance(p, (list, tuple)):
+            for i in p:
+                self.extend_paths(i)
+
     def __exit__(self, exc_type, exc_value, traceback):
-        if isinstance(exc_value, (ImportError, ModuleNotFoundError)):
-            self._success = False
-            self.run(exc_value)
-            return True
+        if isinstance(exc_value, ImportError):
+            if (p := self._sys_path) is None:
+                self._success = False
+                self.run(exc_value)
+                return True
+            else:
+                if self._tried == 0:
+                    self.extend_paths(p)
+                    return True
         else:
             self._trying = False
             self._success = True
