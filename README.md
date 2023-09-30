@@ -1,4 +1,9 @@
 # ensure_import
+
+[![LatestVersionInPypi](https://img.shields.io/pypi/v/ensure_import.svg?style=for-the-badge)](https://pypi.python.org/pypi/ensure_import)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge)](https://github.com/psf/black)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=for-the-badge)](https://github.com/pre-commit/pre-commit)
+
 Auto install third part packages by pip into virtual environment when import error.
 
 ## Install
