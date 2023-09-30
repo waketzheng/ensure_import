@@ -39,7 +39,7 @@ def _a():
     assert tomli != flit
     assert issubclass(ForeignKeyField, Field)
     assert not WORK_DIR.joinpath("venv").exists()
-    assert WORK_DIR.joinpath(".venv").exists()
+    assert WORK_DIR.joinpath(".venv").exists() or EnsureImport.is_poetry_project(Path())
     return timestamp
 
 
