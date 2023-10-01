@@ -7,7 +7,7 @@ import sys
 from contextlib import AbstractContextManager
 from functools import cached_property
 from pathlib import Path
-from typing import Final, List, Optional, Union
+from typing import Dict, Final, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class EnsureImport(AbstractContextManager):
     }
     retry: Final = 30
     inited = False
-    instances: dict = {}
+    instances: Dict[str, "EnsureImport"] = {}
 
     @classmethod
     def reset(cls) -> None:
@@ -49,8 +49,8 @@ class EnsureImport(AbstractContextManager):
     def __new__(cls, *args, **kwargs):
         if (key := f"*{args}, **{kwargs}") in cls.instances:
             return cls.instances[key]
-        obj = cls.instances[key] = super().__new__(cls)
-        return obj
+        self = cls.instances[key] = super().__new__(cls)
+        return self
 
     def __init__(
         self,
@@ -134,22 +134,7 @@ class EnsureImport(AbstractContextManager):
 
     def auto_load(self, **packages) -> "EnsureImport":
         self._clear_kw(packages)
-        if self._sys_path:
-            self._extend_path(packages)
-        elif self._no_venv:
-            self._just_install(packages)
-        else:
-            self._with_venv(packages)
         return self
-
-    def _with_venv(self, packages):
-        pass
-
-    def _just_install(self, packages):
-        pass
-
-    def _extend_path(self, packages):
-        pass
 
     @property
     def ok(self) -> bool:
@@ -160,16 +145,19 @@ class EnsureImport(AbstractContextManager):
             sys.path.append(p)
         elif isinstance(p, Path):
             sys.path.append(p.as_posix())
-        elif isinstance(p, (list, tuple)):
+        elif isinstance(p, (list, set, tuple)):
             for i in p:
                 self.extend_paths(i)
+        else:
+            raise TypeError(f"Expected: str/Path/List/Set/Tuple\nGot: {type(p)}")
 
     def __exit__(self, exc_type, exc_value, traceback):
         if isinstance(exc_value, ImportError):
             if (p := self._sys_path) is None:
-                self._success = False
-                self.run(exc_value)
-                return True
+                if self._tried < self.retry:
+                    self._success = False
+                    self.run(exc_value)
+                    return True
             else:
                 if self._tried == 0:
                     self.extend_paths(p)
@@ -226,15 +214,6 @@ class EnsureImport(AbstractContextManager):
         r = subprocess.run(cmd.split(), capture_output=True)
         return Path(r.stdout.strip().decode())
 
-    def testing(self) -> bool:
-        d = Path.cwd()
-        if d.name.startswith("test_"):
-            for _ in range(3):
-                d = d.parent
-                if d.name == "tests" and d.parent.name == "ensure_import":
-                    return True
-        return False
-
     @cached_property
     def workdir(self) -> Path:
         if self._workdir is None:
@@ -246,7 +225,7 @@ class EnsureImport(AbstractContextManager):
     def install_and_extend_sys_path(self, *packages) -> int:
         py: Union[str, Path] = Path(sys.executable)
         depends = " ".join(packages)
-        if not self.is_venv():
+        if not self._no_venv and not self.is_venv():
             if self.is_poetry_project(self.workdir):
                 p = self.get_poetry_py_path()
                 py = "poetry run python"
@@ -270,8 +249,9 @@ class EnsureImport(AbstractContextManager):
                     ...
                 else:
                     return 0
-            self.run_and_echo(f"{py} -m pip install --upgrade pip")
-        if self.run_and_echo(f"{py} -m pip install {depends}"):
+            if self._install:
+                self.run_and_echo(f"{py} -m pip install --upgrade pip")
+        if self._install and self.run_and_echo(f"{py} -m pip install {depends}"):
             self.log_error(f"install {depends}")
             return 2
         return 0

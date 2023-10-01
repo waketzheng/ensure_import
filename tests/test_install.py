@@ -3,8 +3,9 @@ from contextlib import chdir
 from pathlib import Path
 
 import pytest
-from ensure_import import EnsureImport as _EI
 from tests.utils import lock_sys_path
+
+from ensure_import import EnsureImport as _EI
 
 
 def test_venv(mocker):
@@ -50,10 +51,11 @@ def test_set_params():
 
 def test_install_failed(mocker):
     mocker.patch("ensure_import.EnsureImport.install_and_extend_sys_path", return_value=0)
-    while _ei := _EI(_sys_path=None, _workdir=None, _no_venv=True):
-        with _ei:
-            import not_exist_module
-    with pytest.raises(NameError):
+    with pytest.raises(ModuleNotFoundError):
+        while _ei := _EI(_sys_path=None, _workdir=None, _no_venv=True):
+            with _ei:
+                import not_exist_module
+    with pytest.raises(UnboundLocalError):
         not_exist_module.main()
     assert _ei._tried >= _ei.retry
     assert _ei._trying is True
