@@ -1,4 +1,5 @@
 import importlib
+import importlib.metadata
 import logging
 import platform
 import re
@@ -12,6 +13,8 @@ from typing import Dict, Final, List, Optional, Union
 logger = logging.getLogger(__name__)
 
 PathLike = Union[str, Path]
+__version__ = importlib.metadata.version("ensure_import")
+__all__ = ("__version__", "EnsureImport")
 
 
 class EnsureImport(AbstractContextManager):

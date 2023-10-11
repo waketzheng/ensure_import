@@ -3,6 +3,16 @@ from pathlib import Path
 
 from ensure_import import EnsureImport as _EI
 
+"""
+The ensure_import with auto create virtual environment,
+then install fastapi/uvicorn by pip.
+
+Usage::
+
+    python main.py
+
+"""
+
 while _ei := _EI():
     with _ei:
         import uvicorn
