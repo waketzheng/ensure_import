@@ -144,10 +144,16 @@ class EnsureImport(AbstractContextManager):
         return self._success
 
     def extend_paths(self, p: Union[PathLike, List[PathLike]]) -> None:
-        if isinstance(p, str):
-            sys.path.append(p)
-        elif isinstance(p, Path):
-            sys.path.append(p.as_posix())
+        if isinstance(p, (str, Path)):
+            if isinstance(p, str):
+                if (_p := Path(p)).is_file():
+                    p = _p.parent.as_posix()
+            else:
+                if p.is_file():
+                    p = p.parent
+                p = p.as_posix()
+            if p not in sys.path:
+                sys.path.append(p)
         elif isinstance(p, (list, set, tuple)):
             for i in p:
                 self.extend_paths(i)
@@ -162,7 +168,7 @@ class EnsureImport(AbstractContextManager):
                     self.run(exc_value)
                     return True
             else:
-                if self._tried == 0:
+                if self._tried <= 1:
                     self.extend_paths(p)
                     return True
         else:

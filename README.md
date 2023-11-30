@@ -51,3 +51,22 @@ except ImportError:
     import gunicorn
     import uvicorn
 ```
+- Support `__file__`
+
+```py
+while _ei := _EI(__file__):
+    with _ei:
+        import local_module
+
+# is equal to:
+try:
+    import local_module
+except ImportError:
+    import sys
+    from pathlib import Path
+    dirpath: str = Path(__file__).parent.as_posix()
+    if dirpath not in sys.path:
+        sys.path.append(dirpath)
+
+    import local_module
+```
