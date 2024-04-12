@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ensure-import"
-version = "0.3.5"
+version = "0.3.6"
 description = "Auto install third part packages by pip into virtual environment when import error."
 authors = ["Waket Zheng <waketzheng@gmail.com>"]
 readme = "README.md"
@@ -13,12 +13,12 @@ python = "^3.8"
 
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^3.4.0"
-pytest-mock = "^3.11.1"
+pre-commit = ">=3.4.0"
+pytest-mock = "^3.14.0"
 types-pytz = "*"
 types-six = "*"
 types-ujson = "*"
-fast-tort-cli = {version = "*", python = "^3.11", extras = ["all"]}
+fast-dev-cli = {version = "*", python = "^3.11", extras = ["all"]}
 
 [tool.poetry.scripts]
 prepare="ensure_import.prepare:run"
