@@ -6,7 +6,6 @@ set -x
 checkfiles="ensure_import"
 [ -f ../pyproject.toml ] && cd ..
 
-((poetry run isort --check-only $checkfiles && poetry run black --check $checkfiles) ||
+((poetry run ruff check $checkfiles && poetry run ruff format --check $checkfiles) ||
   (echo -e "\033[1m Please run './scripts/format.sh' to auto-fix style issues \033[0m" && false)) && \
-poetry run ruff $checkfiles && \
 poetry run mypy $checkfiles
