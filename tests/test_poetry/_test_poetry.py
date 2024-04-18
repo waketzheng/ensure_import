@@ -21,7 +21,7 @@ def clear():
 def _a():
     for _ in range(EnsureImport.retry):
         with EnsureImport() as _m:
-            import flit
+            import idna
             import orjson
             import pytz as pz
             import tomli
@@ -36,7 +36,7 @@ def _a():
     timestamp = os.path.getmtime(orjson.__file__)
     assert pz is not None
     load_dotenv()
-    assert tomli != flit
+    assert tomli != idna
     assert issubclass(ForeignKeyField, Field)
     assert not WORK_DIR.joinpath("venv").exists()
     assert WORK_DIR.joinpath(".venv").exists() or EnsureImport.is_poetry_project(Path())
