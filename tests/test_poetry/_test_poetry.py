@@ -46,8 +46,8 @@ def _a():
 def _b(timestamp):
     for _ in range(EnsureImport.retry):
         with EnsureImport() as _m:
-            import pytz as pz
             import orjson
+            import pytz as pz
             from dotenv import load_dotenv
             from tortoise.fields import Field
             from tortoise.fields.relational import (

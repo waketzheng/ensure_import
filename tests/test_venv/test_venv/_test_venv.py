@@ -36,7 +36,7 @@ def _a(venv_path):
     for i in range(EnsureImport.retry):
         with EnsureImport() as _m:
             import pytz as pz
-            import ujson, zipp
+            import ujson, zipp  # isort:skip
             from dotenv import load_dotenv
             from tortoise.fields import Field
             from tortoise.fields.relational import (

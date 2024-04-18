@@ -1,5 +1,7 @@
 import subprocess
+
 import pytest
+
 from ensure_import import EnsureImport as _EI
 
 

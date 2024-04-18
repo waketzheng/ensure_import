@@ -215,7 +215,7 @@ class EnsureImport(AbstractContextManager):
 
     @staticmethod
     def check_shell(cmd: str) -> bool:
-        return subprocess.run(cmd, shell=True, stderr=subprocess.DEVNULL).returncode == 0
+        return subprocess.call(cmd, shell=True, stderr=subprocess.DEVNULL) == 0
 
     @staticmethod
     def get_poetry_py_path() -> Path:
