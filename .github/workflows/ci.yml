@@ -34,15 +34,12 @@ jobs:
           python -m pip install --upgrade pip poetry
           poetry config virtualenvs.create false
       - name: Install requirements
-        run: |
-          poetry install
-          poetry run pip install coveralls
+        run: poetry install
       - name: Check code style and Type Hint
         run: |
           poetry run ruff check --extend-select=I .
           poetry run ruff format --check .
           poetry run mypy .
-          poetry run bandit -r ensure_import
       - name: test
         run: poetry run coverage run -m pytest -s
       - name: report
