@@ -32,6 +32,7 @@ jobs:
       - name: Prepare tools
         run: |
           python -m pip install --upgrade pip
+          pip install .
       - name: Install requirements
         run: pip install -r dev_requirements.txt
       - name: Check code style and Type Hint
@@ -43,5 +44,3 @@ jobs:
         run: coverage run -m pytest -s
       - name: report
         run: coverage report -m
-      - name: build
-        run: pip install .
