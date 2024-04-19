@@ -19,6 +19,10 @@ types-pytz = "*"
 types-six = "*"
 types-ujson = "*"
 fast-dev-cli = {version = "*", python = "^3.11", extras = ["all"]}
+bandit = "^1.7.8"
+ruff = ">=0.3"
+coverage = "*"
+pytest = "*"
 
 [tool.poetry.scripts]
 prepare="ensure_import.prepare:run"

@@ -3,6 +3,7 @@ import importlib.metadata
 import logging
 import platform
 import re
+import shlex
 import subprocess
 import sys
 from contextlib import AbstractContextManager
@@ -195,7 +196,7 @@ class EnsureImport(AbstractContextManager):
     @staticmethod
     def run_and_echo(cmd: str) -> int:
         logger.info(f"--> Executing shell command:\n {cmd}")
-        return subprocess.call(cmd, shell=True)
+        return subprocess.call(shlex.split(cmd))
 
     @staticmethod
     def log_error(action: str) -> None:
@@ -215,7 +216,7 @@ class EnsureImport(AbstractContextManager):
 
     @staticmethod
     def check_shell(cmd: str) -> bool:
-        return subprocess.call(cmd, shell=True, stderr=subprocess.DEVNULL) == 0
+        return subprocess.call(shlex.split(cmd), stderr=subprocess.DEVNULL) == 0
 
     @staticmethod
     def get_poetry_py_path() -> Path:

@@ -1,3 +1,4 @@
+import shlex
 import subprocess
 
 import pytest
@@ -6,7 +7,7 @@ from ensure_import import EnsureImport as _EI
 
 
 def _teardown():
-    subprocess.run("poetry install --sync", shell=True)
+    subprocess.run(shlex.split("poetry install --sync"))
 
 
 def _run():
