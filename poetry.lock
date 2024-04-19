@@ -86,6 +86,17 @@ files = [
 ]
 
 [[package]]
+name = "contextlib-chdir"
+version = "1.0.2"
+description = "Backport of contextlib.chdir stdlib class added in Python3.11."
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "contextlib-chdir-1.0.2.tar.gz", hash = "sha256:58406a71db00647fcccfc7e52e9e04e44d29eacf30400e7c0ba3b15f09d5f3fa"},
+    {file = "contextlib_chdir-1.0.2-py3-none-any.whl", hash = "sha256:f72f7abd0f87c18a57aee30acf97659ca315157e50bd07e084b8737e0719de3c"},
+]
+
+[[package]]
 name = "coverage"
 version = "7.4.4"
 description = "Code coverage measurement for Python"
@@ -709,4 +720,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "c6489e8987f9f8560daabd8d8e19b182d5aa227089b834d8c7280606da45aecd"
+content-hash = "11f23e1496bf16a20d1ccc12627f46c25e20d0948e37f25e165e80af8caa82e3"
