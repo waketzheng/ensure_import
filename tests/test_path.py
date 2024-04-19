@@ -25,7 +25,7 @@ def test_path(tmp_path: Path):
             e1 = e
 
         try:
-            while _ei := _EI(subpath.name):
+            while _ei := _EI(subpath):
                 with _ei:
                     import module_name_1  # noqa: F811
         except BaseException as e:
@@ -35,7 +35,7 @@ def test_path(tmp_path: Path):
 
         m = subpath / "module_name_1.py"
         m.touch()
-        while _ei := _EI(subpath.name):
+        while _ei := _EI(subpath):
             with _ei:
                 import module_name_1  # noqa: F811
         assert Path(module_name_1.__file__) == m
