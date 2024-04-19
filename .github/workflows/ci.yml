@@ -31,16 +31,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Prepare tools
         run: |
-          python -m pip install --upgrade pip
-          pip install .
+          python -m pip install --upgrade pip poetry
       - name: Install requirements
-        run: pip install -r dev_requirements.txt
+        run: poetry install
       - name: Check code style and Type Hint
         run: |
-          ruff check --extend-select=I .
-          ruff format --check .
-          mypy .
+          poetry run ruff check --extend-select=I .
+          poetry run ruff format --check .
+          poetry run mypy .
       - name: test
-        run: coverage run -m pytest -s
+        run: poetry run coverage run -m pytest -s
       - name: report
-        run: coverage report -m
+        run: poetry run coverage report -m
