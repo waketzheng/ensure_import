@@ -311,6 +311,7 @@ files = [
 
 [package.dependencies]
 mypy-extensions = ">=1.0.0"
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 typing-extensions = ">=4.1.0"
 
 [package.extras]
@@ -708,4 +709,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "93d8055fe74fd6bb46c66ae69677ab4b1df05c36034cbd6534d650c1047d12a2"
+content-hash = "c6489e8987f9f8560daabd8d8e19b182d5aa227089b834d8c7280606da45aecd"

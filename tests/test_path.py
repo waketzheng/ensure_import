@@ -1,6 +1,10 @@
 import sys
-from contextlib import chdir
 from pathlib import Path
+
+if sys.version_info >= (3, 11):
+    from contextlib import chdir
+else:
+    from contextlib_chdir import chdir
 
 from ensure_import import EnsureImport as _EI
 

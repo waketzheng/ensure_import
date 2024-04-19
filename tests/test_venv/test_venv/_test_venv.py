@@ -2,8 +2,13 @@
 import os
 import shutil
 import sys
-from contextlib import chdir, contextmanager
+from contextlib import contextmanager
 from pathlib import Path
+
+if sys.version_info >= (3, 11):
+    from contextlib import chdir
+else:
+    from contextlib_chdir import chdir
 
 WORK_DIR = Path(__file__).parent
 ROOT = WORK_DIR.parent.parent.parent.parent
