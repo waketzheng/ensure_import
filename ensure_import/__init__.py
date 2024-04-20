@@ -14,7 +14,11 @@ from typing import Dict, Final, List, Optional, Union
 logger = logging.getLogger(__name__)
 
 PathLike = Union[str, Path]
-__version__ = importlib.metadata.version("ensure_import")
+try:
+    __version__ = importlib.metadata.version("ensure_import")
+except importlib.metadata.PackageNotFoundError:
+    __version__ = "0.1.0"
+
 __all__ = ("__version__", "EnsureImport")
 
 
@@ -64,7 +68,7 @@ class EnsureImport(AbstractContextManager):
         _no_venv: Optional[bool] = None,
         _exit=None,
         **kwargs,
-    ):
+    ) -> None:
         """
         :Param _sys_path: directory path to append to sys.path
         :Param _workdir: working directory, default to Path.cwd
@@ -232,6 +236,15 @@ class EnsureImport(AbstractContextManager):
             self._workdir = self._workdir.parent
         return self._workdir
 
+    @staticmethod
+    def is_module_installed(name: str) -> bool:
+        try:
+            importlib.import_module(name)
+        except ImportError:
+            return False
+        else:
+            return True
+
     def install_and_extend_sys_path(self, *packages) -> int:
         py: Union[str, Path] = Path(sys.executable)
         depends = " ".join(packages)
@@ -253,11 +266,7 @@ class EnsureImport(AbstractContextManager):
                 sys.path.append(lib)
                 if not self.check_shell(f"{py} -c 'import ensure_import'"):
                     sys.path.append(Path(__file__).parent.parent.as_posix())
-                try:
-                    importlib.import_module(packages[0])
-                except ImportError:
-                    ...
-                else:
+                if self.is_module_installed(packages[0]):
                     return 0
             if self._install:
                 self.run_and_echo(f"{py} -m pip install --upgrade pip")

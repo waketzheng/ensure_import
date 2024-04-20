@@ -25,8 +25,8 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Prepare tools
@@ -36,7 +36,7 @@ jobs:
         run: poetry install
       - name: Check code style and Type Hint
         run: |
-          poetry run ruff check --extend-select=I .
+          poetry run ruff check --extend-select=I --output-format=github .
           poetry run ruff format --check .
           poetry run mypy .
       - name: test
