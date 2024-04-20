@@ -35,6 +35,7 @@ def test_path(tmp_path: Path):
 
         m = subpath / "module_name_1.py"
         m.touch()
+        _EI.reset()
         while _ei := _EI(subpath):
             with _ei:
                 import module_name_1  # noqa: F811
