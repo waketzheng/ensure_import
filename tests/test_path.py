@@ -34,9 +34,17 @@ def test_path(tmp_path: Path):
         assert e1 is not None and type(e1) is type(e2) and str(e1) == str(e2)
 
         m = subpath / "module_name_1.py"
-        m.touch()
+        m.write_text("def a(): ...")
         _EI.reset()
+        count = 0
+        for attr in dir(_EI):
+            value = getattr(_EI, attr, None)
+            if not callable(value):
+                print(f"{attr = }; {value = }")
+        print("=" * 20)
         while _ei := _EI(subpath):
+            count += 1
+            print(f"{count = }; {bool(_ei) = }")
             with _ei:
                 import module_name_1  # noqa: F811
         assert Path(module_name_1.__file__) == m
