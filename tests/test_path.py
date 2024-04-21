@@ -44,7 +44,7 @@ def test_path(tmp_path: Path):
         print("=" * 20)
         while _ei := _EI(subpath):
             count += 1
-            print(f"{count = }; {bool(_ei) = }")
+            print(f"{count = }; {bool(_ei) = }; {sys.path = }")
             with _ei:
                 import module_name_1  # noqa: F811
         assert Path(module_name_1.__file__) == m
