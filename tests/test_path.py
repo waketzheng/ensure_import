@@ -42,7 +42,7 @@ def test_path(tmp_path: Path):
             if not callable(value):
                 print(f"{attr = }; {value = }")
         print("=" * 20)
-        print('subpath:', subpath, 'm:', m, 'text:', m.read_text())
+        print("subpath:", subpath, "m:", m, "text:", m.read_text())
         while _ei := _EI(subpath):
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
