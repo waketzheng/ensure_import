@@ -6,7 +6,7 @@ if sys.version_info >= (3, 11):
 else:
     from contextlib_chdir import chdir
 
-from ensure_import import EnsureImport as _EI
+from ensure_import import EnsureImport
 
 
 def test_path(tmp_path: Path):
@@ -25,25 +25,21 @@ def test_path(tmp_path: Path):
             e1 = e
 
         try:
-            while _ei := _EI(subpath):
+            while _ei := EnsureImport(subpath):
                 with _ei:
                     import module_name_1  # noqa: F811
         except BaseException as e:
             e2 = e
 
         assert e1 is not None and type(e1) is type(e2) and str(e1) == str(e2)
+        EnsureImport.reset()
 
         m = subpath / "module_name_1.py"
         m.write_text("def a(): ...")
-        _EI.reset()
         count = 0
-        for attr in dir(_EI):
-            value = getattr(_EI, attr, None)
-            if not callable(value):
-                print(f"{attr = }; {value = }")
         print("=" * 20)
         print("subpath:", subpath, "m:", m, "text:", m.read_text())
-        while _ei := _EI(subpath):
+        while _ei := EnsureImport(subpath):
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
             try:

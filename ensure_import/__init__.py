@@ -120,10 +120,12 @@ class EnsureImport(AbstractContextManager):
 
     @property
     def trying(self) -> bool:
+        print("jjjjjjjjjjjjjj", "trying called", f"{self._tried = }")
         if self._tried >= self.retry:
             self._trying = False
         else:
             self._tried += 1
+        print("kkkkkkkkkkkkkkkkk", f"{self._tried = }; {self._trying = }")
         if self._trying:
             return True
         self._trying = True
@@ -165,8 +167,12 @@ class EnsureImport(AbstractContextManager):
         else:
             raise TypeError(f"Expected: str/Path/List/Set/Tuple\nGot: {type(p)}")
 
+    def __enter__(self, *args, **kw):
+        print("0000000000000 Entering", f"{self._tried = }")
+        return super().__enter__()
+
     def __exit__(self, exc_type, exc_value, traceback):
-        print(1111111111111111111)
+        print(1111111111111111111, f"{self._tried = }")
         if isinstance(exc_value, ImportError):
             print(22222222222222)
             if (p := self._sys_path) is None:
