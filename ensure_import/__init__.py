@@ -45,7 +45,8 @@ class EnsureImport(AbstractContextManager):
         "dotenv": "python-dotenv",
         "snap7": "python-snap7",
     }
-    retry: Final = 30
+    RETRY: Final = 30
+    retry = RETRY
     inited = False
     instances: Dict[str, "EnsureImport"] = {}
 
@@ -124,7 +125,7 @@ class EnsureImport(AbstractContextManager):
     def trying(self) -> bool:
         if self._debug:
             print("jjjjjjjjjjjjjj", "trying called", f"{self._tried = }")
-        if self._tried >= self.retry:
+        if self._tried >= self.RETRY:
             self._trying = False
         else:
             self._tried += 1
@@ -137,7 +138,7 @@ class EnsureImport(AbstractContextManager):
 
     def __bool__(self) -> bool:
         if self._debug:
-            print("__bool__", self._trying)
+            print("__bool__", self._tried, self._trying)
         return self.trying
 
     def _clear_kw(self, packages) -> None:
@@ -187,9 +188,9 @@ class EnsureImport(AbstractContextManager):
             if (p := self._sys_path) is None:
                 if self._debug:
                     print(
-                        333, f"{self._tried<self.retry=};{self._tried=};{self.retry=}"
+                        333, f"{self._tried<self.RETRY=};{self._tried=};{self.RETRY=}"
                     )
-                if self._tried < self.retry:
+                if self._tried < self.RETRY:
                     self._success = False
                     self.run(exc_value)
                     return True

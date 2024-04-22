@@ -36,11 +36,6 @@ def test_path(tmp_path: Path):
         assert e1 is not None and type(e1) is type(e2) and str(e1) == str(e2)
         EnsureImport.reset()
 
-
-def test_path_1(tmp_path: Path):
-    subpath = tmp_path / "module_path"
-    subpath.mkdir(exist_ok=True)
-    with chdir(tmp_path):
         m = subpath / "module_name_1.py"
         m.write_text("def a(): ...")
         count = 0
@@ -53,6 +48,7 @@ def test_path_1(tmp_path: Path):
                 import module_name_1
             except Exception as e:
                 print(f"{type(e) = }; {e = }", e)
+            print(f'Before __enter__: {_ei._tried = }; {_ei._trying = }')
             with _ei:
                 print(f"{m = }; {subpath = }; {sys.path = }")
                 import module_name_1  # noqa: F811
