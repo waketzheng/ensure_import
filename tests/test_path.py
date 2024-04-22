@@ -46,6 +46,11 @@ def test_path(tmp_path: Path):
         while _ei := _EI(subpath):
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
+            try:
+                import module_name_1
+            except Exception as e:
+                print(f"{type(e) = }; {e = }", e)
             with _ei:
+                print(f"{m = }; {subpath = }; {sys.path = }")
                 import module_name_1  # noqa: F811
         assert Path(module_name_1.__file__) == m

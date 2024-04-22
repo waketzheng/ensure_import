@@ -166,17 +166,22 @@ class EnsureImport(AbstractContextManager):
             raise TypeError(f"Expected: str/Path/List/Set/Tuple\nGot: {type(p)}")
 
     def __exit__(self, exc_type, exc_value, traceback):
+        print(1111111111111111111)
         if isinstance(exc_value, ImportError):
+            print(22222222222222)
             if (p := self._sys_path) is None:
+                print(333, f"{self._tried<self.retry=};{self._tried=};{self.retry=}")
                 if self._tried < self.retry:
                     self._success = False
                     self.run(exc_value)
                     return True
             else:
+                print("aaaaaaaaaaaaaaaaaaaaa", p, self._tried)
                 if self._tried <= 1:
                     self.extend_paths(p)
                     return True
         else:
+            print("而" * 20)
             self._trying = False
             self._success = True
 
