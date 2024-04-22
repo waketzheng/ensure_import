@@ -48,7 +48,7 @@ def test_path(tmp_path: Path):
                 import module_name_1
             except Exception as e:
                 print(f"{type(e) = }; {e = }", e)
-            print(f'Before __enter__: {_ei._tried = }; {_ei._trying = }')
+            print(f"Before __enter__: {_ei._tried = }; {_ei._trying = }")
             with _ei:
                 print(f"{m = }; {subpath = }; {sys.path = }")
                 import module_name_1  # noqa: F811
