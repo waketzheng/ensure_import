@@ -39,7 +39,7 @@ def test_path(tmp_path: Path):
         count = 0
         print("=" * 20)
         print("subpath:", subpath, "m:", m, "text:", m.read_text())
-        while _ei := EnsureImport(subpath):
+        while _ei := EnsureImport(subpath, _debug=True):
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
             try:
