@@ -197,7 +197,7 @@ class EnsureImport(AbstractContextManager):
             else:
                 if self._debug:
                     print("aaaaaaaaaaaaaaaaaaaaa", p, self._tried)
-                if self._tried <= 1:
+                if self._tried <= 2:
                     self.extend_paths(p)
                     return True
         else:
