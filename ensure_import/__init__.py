@@ -137,7 +137,7 @@ class EnsureImport(AbstractContextManager):
 
     def __bool__(self) -> bool:
         if self._debug:
-            print("__bool__", self.trying)
+            print("__bool__", self._trying)
         return self.trying
 
     def _clear_kw(self, packages) -> None:

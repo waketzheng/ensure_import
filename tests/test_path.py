@@ -23,6 +23,8 @@ def test_path(tmp_path: Path):
                 import module_name_1
         except Exception as e:
             e1 = e
+        else:
+            print(module_name_1.__file__)
 
         try:
             while _ei := EnsureImport(subpath):
@@ -34,6 +36,11 @@ def test_path(tmp_path: Path):
         assert e1 is not None and type(e1) is type(e2) and str(e1) == str(e2)
         EnsureImport.reset()
 
+
+def test_path_1(tmp_path: Path):
+    subpath = tmp_path / "module_path"
+    subpath.mkdir(exist_ok=True)
+    with chdir(tmp_path):
         m = subpath / "module_name_1.py"
         m.write_text("def a(): ...")
         count = 0
