@@ -222,7 +222,7 @@ class EnsureImport(AbstractContextManager):
                                         if v not in vv:
                                             vv.append(v)
                                         v = ";".join(vv)
-                                    os.envicon["PYTHONPATH"] = v
+                                    os.environ["PYTHONPATH"] = v
                                     print(f"PYTHONPATH set to {v!r}")
                                     p = Path(p) / (m + ".py")
                                 try:
