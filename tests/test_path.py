@@ -43,9 +43,11 @@ def test_path(tmp_path: Path):
         print("subpath:", subpath, "m:", m, "text:", m.read_text())
         # while _ei := EnsureImport(subpath, _debug=True):
         while True:
+            print("青山遮不住，毕竟东流去")
             _ei = EnsureImport(subpath, _debug=True)
+            print("惜罇空：黄河之水天上来，飞流直下三千尺")
+            print(f"before call bool: {_ei._tried = }; {_ei._trying = }")
             if not _ei:
-                print(f"bool of _ei is False: {_ei._tried = }; {_ei._trying = }")
                 break
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
