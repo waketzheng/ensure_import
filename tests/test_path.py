@@ -52,7 +52,7 @@ def test_path(tmp_path: Path):
             if not should_try:
                 break
             count += 1
-            print(f"{count = }; {bool(_ei) = }; {sys.path = }")
+            print(f"{count = };{_ei=};{_ei._tried = };{_ei._trying = };{sys.path = }")
             try:
                 import module_name_1
             except Exception as e:
