@@ -41,7 +41,12 @@ def test_path(tmp_path: Path):
         count = 0
         print("=" * 20)
         print("subpath:", subpath, "m:", m, "text:", m.read_text())
-        while _ei := EnsureImport(subpath, _debug=True):
+        # while _ei := EnsureImport(subpath, _debug=True):
+        while True:
+            _ei = EnsureImport(subpath, _debug=True)
+            if not _ei:
+                print(f"bool of _ei is False: {_ei._tried = }; {_ei._trying = }")
+                break
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
             try:
