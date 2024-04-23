@@ -57,8 +57,12 @@ class EnsureImport(AbstractContextManager):
 
     def __new__(cls, *args, **kwargs):
         if (key := f"*{args}, **{kwargs}") in cls.instances:
+            if kwargs.get("_debug"):
+                print("云中谁寄锦书来，或恐是同乡, cache hint")
             return cls.instances[key]
         self = cls.instances[key] = super().__new__(cls)
+        if kwargs.get("_debug"):
+            print("千磨万击还坚韧，管它春下雨秋冬, initialed")
         return self
 
     def __init__(
@@ -95,6 +99,8 @@ class EnsureImport(AbstractContextManager):
             _no_venv,
             _exit,
         )
+        if _debug:
+            print(f"{self._tried = }; {self._trying = }")
 
     def _set_params(
         self,
