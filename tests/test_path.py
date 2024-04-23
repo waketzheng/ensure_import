@@ -47,7 +47,8 @@ def test_path(tmp_path: Path):
             _ei = EnsureImport(subpath, _debug=True)
             print("惜罇空：黄河之水天上来，飞流直下三千尺")
             print(f"before call bool: {_ei._tried = }; {_ei._trying = }")
-            if not _ei:
+            should_try = bool(_ei)
+            if not should_try:
                 break
             count += 1
             print(f"{count = }; {bool(_ei) = }; {sys.path = }")
