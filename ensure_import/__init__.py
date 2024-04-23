@@ -165,7 +165,7 @@ class EnsureImport(AbstractContextManager):
     def ok(self) -> bool:
         return self._success
 
-    def extend_paths(self, p: Union[PathLike, List[PathLike]]) -> None:
+    def extend_paths(self, p: Union[PathLike, List[PathLike]]) -> bool:
         if isinstance(p, (str, Path)):
             if isinstance(p, str):
                 if (_p := Path(p)).is_file():
@@ -176,9 +176,10 @@ class EnsureImport(AbstractContextManager):
                 p = p.as_posix()
             if p not in sys.path:
                 sys.path.append(p)
+                return True
+            return False
         elif isinstance(p, (list, set, tuple)):
-            for i in p:
-                self.extend_paths(i)
+            return any(self.extend_paths(i) for i in p)
         else:
             raise TypeError(f"Expected: str/Path/List/Set/Tuple\nGot: {type(p)}")
 
@@ -206,13 +207,22 @@ class EnsureImport(AbstractContextManager):
                 if self._debug:
                     print("aaaaaaaaaaaaaaaaaaaaa", p, self._tried)
                 if self._tried <= 2:
-                    self.extend_paths(p)
+                    if not self.extend_paths(p):
+                        for m in self.get_importing_modules(exc_value):
+                            try:
+                                importlib.import_module(m)
+                            except ImportError:
+                                pass
                     return True
         else:
             if self._debug:
                 print("^" * 20)
             self._trying = False
             self._success = True
+
+    def get_importing_modules(self, e):
+        modules = re.findall(r"'([a-zA-Z][0-9a-zA-Z_]+)'", str(e))
+        return modules
 
     def run(self, e) -> None:
         modules = re.findall(r"'([a-zA-Z][0-9a-zA-Z_]+)'", str(e))
