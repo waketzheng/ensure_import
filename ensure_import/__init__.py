@@ -212,7 +212,14 @@ class EnsureImport(AbstractContextManager):
                             try:
                                 importlib.import_module(m)
                             except ImportError:
-                                pass
+                                print(f"Failed to import module: {m}")
+                                if Path(p).is_dir():
+                                    p = Path(p) / (m + ".py")
+                                try:
+                                    importlib.util.spec_from_file_location(m, p)
+                                except ImportError:
+                                    print(f"Can not import from location: {m=}, {p=}")
+
                     return True
         else:
             if self._debug:
