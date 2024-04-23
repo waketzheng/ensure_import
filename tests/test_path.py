@@ -48,6 +48,7 @@ def test_path(tmp_path: Path):
             print("惜罇空：黄河之水天上来，飞流直下三千尺")
             print(f"before call bool: {_ei._tried = }; {_ei._trying = }")
             should_try = bool(_ei)
+            print(f"After bool called:{_ei=};{_ei._tried = };{_ei._trying = }")
             if not should_try:
                 break
             count += 1
