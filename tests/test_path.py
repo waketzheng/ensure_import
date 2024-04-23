@@ -38,6 +38,7 @@ def test_path(tmp_path: Path):
 
         m = subpath / "module_name_1.py"
         m.write_text("def a(): ...")
+        subpath.joinpath('__init__.py').touch()
         count = 0
         print("=" * 20)
         print("subpath:", subpath, "m:", m, "text:", m.read_text())
