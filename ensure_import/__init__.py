@@ -1,6 +1,7 @@
 import importlib
 import importlib.metadata
 import logging
+import os
 import platform
 import re
 import shlex
@@ -214,6 +215,15 @@ class EnsureImport(AbstractContextManager):
                             except ImportError:
                                 print(f"Failed to import module: {m}")
                                 if Path(p).is_dir():
+                                    v = str(p)
+                                    if _v := os.getenv("PYTHONPATH"):
+                                        print(f"PYTHONPATH defined: {_v}")
+                                        vv = _v.split(";")
+                                        if v not in vv:
+                                            vv.append(v)
+                                        v = ";".join(vv)
+                                    os.envicon["PYTHONPATH"] = v
+                                    print(f"PYTHONPATH set to {v!r}")
                                     p = Path(p) / (m + ".py")
                                 try:
                                     importlib.util.spec_from_file_location(m, p)
