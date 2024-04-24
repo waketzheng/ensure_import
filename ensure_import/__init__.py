@@ -72,12 +72,12 @@ class EnsureImport(AbstractContextManager):
         **kwargs,
     ) -> None:
         """
-        :Param _sys_path: directory path to append to sys.path
-        :Param _workdir: working directory, default to Path.cwd
-        :Param _install: install by pip if module not found
-        :Param _no_venv: do not use `python -m venv venv` to create virtual environment
-        :Param _exit: whether call sys.exit when install error
-        :Param kwargs: package name mapping,  example: doten='python-dotenv'
+        :param _sys_path: directory path to append to sys.path
+        :param _workdir: working directory, default to Path.cwd
+        :param _install: install by pip if module not found
+        :param _no_venv: do not use `python -m venv venv` to create virtual environment
+        :param _exit: whether call sys.exit when install error
+        :param kwargs: package name mapping,  example: doten='python-dotenv'
         """
         if self.inited:
             return
@@ -123,11 +123,7 @@ class EnsureImport(AbstractContextManager):
 
     @property
     def trying(self) -> bool:
-        if self._tried >= self.RETRY:
-            self._trying = False
-        else:
-            self._tried += 1
-        if self._trying:
+        if self._tried < self.RETRY and self._trying:
             return True
         self._trying = True
         return False
@@ -171,6 +167,7 @@ class EnsureImport(AbstractContextManager):
 
     def __exit__(self, exc_type, exc_value, traceback):
         if isinstance(exc_value, ImportError):
+            self._tried += 1
             if (p := self._sys_path) is None:
                 if self._tried < self.RETRY:
                     self._success = False
