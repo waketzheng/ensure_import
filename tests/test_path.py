@@ -36,8 +36,13 @@ def test_path(tmp_path: Path):
         assert e1 is not None and type(e1) is type(e2) and str(e1) == str(e2)
         EnsureImport.reset()
 
-        m = subpath / "module_name_1.py"
-        m.write_text("def a(): ...")
+
+def test_path_exists(tmp_path: Path):
+    subpath = tmp_path / "module_path"
+    subpath.mkdir()
+    m = subpath / "module_name_1.py"
+    m.write_text("def a(): ...")
+    with chdir(tmp_path):
         while _ei := EnsureImport(subpath, _debug=True):
             with _ei:
                 import module_name_1  # noqa: F811
