@@ -1,7 +1,6 @@
 import importlib
 import importlib.metadata
 import logging
-import os
 import platform
 import re
 import shlex
@@ -58,12 +57,8 @@ class EnsureImport(AbstractContextManager):
 
     def __new__(cls, *args, **kwargs):
         if (key := f"*{args}, **{kwargs}") in cls.instances:
-            if kwargs.get("_debug"):
-                print("云中谁寄锦书来，或恐是同乡, cache hint")
             return cls.instances[key]
         self = cls.instances[key] = super().__new__(cls)
-        if kwargs.get("_debug"):
-            print("千磨万击还坚韧，管它春下雨秋冬, initialed")
         return self
 
     def __init__(
@@ -100,8 +95,6 @@ class EnsureImport(AbstractContextManager):
             _no_venv,
             _exit,
         )
-        if _debug:
-            print(f"{self._tried = }; {self._trying = }")
 
     def _set_params(
         self,
@@ -130,24 +123,16 @@ class EnsureImport(AbstractContextManager):
 
     @property
     def trying(self) -> bool:
-        if self._debug:
-            print("jjjjjjjjjjjjjj", "trying called", f"{self._tried = }")
         if self._tried >= self.RETRY:
             self._trying = False
         else:
             self._tried += 1
-        if self._debug:
-            print("kkkkkkkkkkkkkkkkk", f"{self._tried = }; {self._trying = }")
         if self._trying:
             return True
         self._trying = True
         return False
 
     def __bool__(self) -> bool:
-        if self._debug:
-            print(1111111111111)
-            print("__bool__", self, self._tried, self._trying)
-            print(22222222222222)
         return self.trying
 
     def _clear_kw(self, packages) -> None:
@@ -184,62 +169,22 @@ class EnsureImport(AbstractContextManager):
         else:
             raise TypeError(f"Expected: str/Path/List/Set/Tuple\nGot: {type(p)}")
 
-    def __enter__(self, *args, **kw):
-        if self._debug:
-            print("0000000000000 Entering", f"{self._tried = }")
-        return super().__enter__()
-
     def __exit__(self, exc_type, exc_value, traceback):
-        if self._debug:
-            print(1111111111111111111, f"{self._tried = }")
         if isinstance(exc_value, ImportError):
-            if self._debug:
-                print(22222222222222)
             if (p := self._sys_path) is None:
-                if self._debug:
-                    print(
-                        333, f"{self._tried<self.RETRY=};{self._tried=};{self.RETRY=}"
-                    )
                 if self._tried < self.RETRY:
                     self._success = False
                     self.run(exc_value)
                     return True
             else:
-                if self._debug:
-                    print("aaaaaaaaaaaaaaaaaaaaa", p, self._tried)
                 if self._tried <= 2:
                     if not self.extend_paths(p):
-                        for m in self.get_importing_modules(exc_value):
-                            try:
-                                importlib.import_module(m)
-                            except ImportError:
-                                print(f"Failed to import module: {m}")
-                                if Path(p).is_dir():
-                                    v = str(p)
-                                    if _v := os.getenv("PYTHONPATH"):
-                                        print(f"PYTHONPATH defined: {_v}")
-                                        vv = _v.split(";")
-                                        if v not in vv:
-                                            vv.append(v)
-                                        v = ";".join(vv)
-                                    os.environ["PYTHONPATH"] = v
-                                    print(f"PYTHONPATH set to {v!r}")
-                                    p = Path(p) / (m + ".py")
-                                try:
-                                    importlib.util.spec_from_file_location(m, p)
-                                except ImportError:
-                                    print(f"Can not import from location: {m=}, {p=}")
-
+                        if self._debug:
+                            logger.warning(f"{p} already in sys.path")
                     return True
         else:
-            if self._debug:
-                print("^" * 20)
             self._trying = False
             self._success = True
-
-    def get_importing_modules(self, e):
-        modules = re.findall(r"'([a-zA-Z][0-9a-zA-Z_]+)'", str(e))
-        return modules
 
     def run(self, e) -> None:
         modules = re.findall(r"'([a-zA-Z][0-9a-zA-Z_]+)'", str(e))
