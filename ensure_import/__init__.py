@@ -112,10 +112,7 @@ class EnsureImport(AbstractContextManager):
             _install = _sys_path is None
         self._install = _install
         if _no_venv is None:
-            if _install is False:
-                _no_venv = True
-            else:
-                _no_venv = _sys_path is not None
+            _no_venv = _install is False or _sys_path is not None
         self._no_venv = _no_venv
         if _exit is None:
             _exit = _sys_path is None
@@ -175,9 +172,8 @@ class EnsureImport(AbstractContextManager):
                     return True
             else:
                 if self._tried <= 2:
-                    if not self.extend_paths(p):
-                        if self._debug:
-                            logger.warning(f"{p} already in sys.path")
+                    if not self.extend_paths(p) and self._debug:
+                        logger.warning(f"{p} already in sys.path")
                     return True
         else:
             self._trying = False
@@ -257,10 +253,9 @@ class EnsureImport(AbstractContextManager):
                 py = "poetry run python"
             else:
                 p = self.workdir / "venv"
-                if not p.exists():
-                    if self.run_and_echo(f"{py} -m venv venv"):
-                        self.log_error(f"create virtual environment for {py}")
-                        return 1
+                if not p.exists() and self.run_and_echo(f"{py} -m venv venv"):
+                    self.log_error(f"create virtual environment for {py}")
+                    return 1
                 if platform.platform().lower().startswith("win"):
                     py = p / "Scripts" / "python.exe"
                 else:

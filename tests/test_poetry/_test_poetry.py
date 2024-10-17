@@ -81,7 +81,7 @@ def _c(timestamp):
 
 
 def run_test():
-    assert WORK_DIR == Path.cwd()
+    assert Path.cwd() == WORK_DIR
     clear()
     timestamp = _a()
     EnsureImport.reset()

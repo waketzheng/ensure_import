@@ -2,7 +2,7 @@
 import os
 import shutil
 import sys
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from pathlib import Path
 
 if sys.version_info >= (3, 11):
@@ -48,6 +48,7 @@ def _a(venv_path):
                 ForeignKeyFieldInstance as ForeignKeyField,
             )
         if _m.ok:
+            print(f"{i = }")
             break
     assert _m.ok
     print(f"{ujson.__file__ = }")
@@ -111,15 +112,14 @@ def run_test():
             _b(venv_path, timestamp)
 
     with sandbox() as venv_path:
+        print(f"{venv_path = }")
         with lock_sys_path():
             _c(venv_path)
 
 
 def _teardown(venv_path) -> None:
-    try:
+    with suppress(FileNotFoundError):
         shutil.rmtree(venv_path)
-    except FileNotFoundError:
-        ...
 
 
 def main():
