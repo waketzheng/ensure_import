@@ -1,6 +1,6 @@
 repos:
 - repo: "git@github.com:pre-commit/pre-commit-hooks"
-  rev: v2.3.0
+  rev: v5.0.0
   hooks:
   -   id: check-yaml
   -   id: end-of-file-fixer
@@ -9,5 +9,5 @@ repos:
   hooks:
     - id: check
       name: check by ruff/mypy
-      entry: ./scripts/check.sh
+      entry: ./scripts/check.py
       language: script

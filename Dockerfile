@@ -9,7 +9,9 @@ COPY ensure_import ensure_import
 COPY pyproject.toml .
 COPY poetry.lock .
 
-RUN pip install --upgrade pip poetry && \
+RUN pip install --upgrade pip pipx && \
+  pipx install poetry && \
+  pipx inject poetry-plugin-export && \
   poetry export --with=dev --without-hashes -o requirements.txt && \
   pip install -r requirements.txt && \
   coverage run --source=ensure_import -m pytest && \

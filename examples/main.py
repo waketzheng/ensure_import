@@ -28,4 +28,4 @@ async def root(request: Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run(f"{Path(__file__).stem}:app")
+    uvicorn.run("__main__:app", reload=True)

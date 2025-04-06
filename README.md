@@ -1,8 +1,8 @@
 # ensure_import
 
 [![LatestVersionInPypi](https://img.shields.io/pypi/v/ensure_import.svg?style=for-the-badge)](https://pypi.python.org/pypi/ensure_import)
-[![Linter: Ruff](https://img.shields.io/badge/Linter-Ruff-brightgreen?style=flat-square)](https://github.com/astral-sh/ruff)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=for-the-badge)](https://github.com/pre-commit/pre-commit)
+[![Linter: Ruff](https://img.shields.io/badge/Linter-Ruff-brightgreen?style=flat-square)](https://github.com/astral-sh/ruff)
 
 Auto install third part packages by pip into virtual environment when import error.
 

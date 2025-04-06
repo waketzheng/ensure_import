@@ -1,23 +1,22 @@
+from __future__ import annotations
+
 import importlib
 import importlib.metadata
 import logging
 import platform
 import re
 import shlex
-import subprocess
+import subprocess  # nosec
 import sys
 from contextlib import AbstractContextManager
 from functools import cached_property
 from pathlib import Path
-from typing import Dict, Final, List, Optional, Union
+from typing import Final, Union
 
+__version__ = "0.4.0"
 logger = logging.getLogger(__name__)
 
 PathLike = Union[str, Path]
-try:
-    __version__ = importlib.metadata.version("ensure_import")
-except importlib.metadata.PackageNotFoundError:
-    __version__ = "0.1.0"
 
 __all__ = ("__version__", "EnsureImport")
 
@@ -48,7 +47,7 @@ class EnsureImport(AbstractContextManager):
     RETRY: Final = 30
     retry = RETRY
     inited = False
-    instances: Dict[str, "EnsureImport"] = {}
+    instances: dict[str, EnsureImport] = {}
 
     @classmethod
     def reset(cls) -> None:
@@ -63,10 +62,10 @@ class EnsureImport(AbstractContextManager):
 
     def __init__(
         self,
-        _sys_path: Optional[Union[PathLike, List[PathLike]]] = None,
-        _workdir: Optional[PathLike] = None,
-        _install: Optional[bool] = None,
-        _no_venv: Optional[bool] = None,
+        _sys_path: PathLike | list[PathLike] | None = None,
+        _workdir: PathLike | None = None,
+        _install: bool | None = None,
+        _no_venv: bool | None = None,
         _exit=None,
         _debug=False,
         **kwargs,
@@ -133,10 +132,10 @@ class EnsureImport(AbstractContextManager):
             params = ("_sys_path", "_workdir", "_no_venv", "_exit", "_install")
             self._set_params(**{k: packages.pop(k, None) for k in params})
 
-    def __call__(self, **packages) -> "EnsureImport":
+    def __call__(self, **packages) -> EnsureImport:
         return self.auto_load(**packages)
 
-    def auto_load(self, **packages) -> "EnsureImport":
+    def auto_load(self, **packages) -> EnsureImport:
         self._clear_kw(packages)
         return self
 
@@ -144,7 +143,7 @@ class EnsureImport(AbstractContextManager):
     def ok(self) -> bool:
         return self._success
 
-    def extend_paths(self, p: Union[PathLike, List[PathLike]]) -> bool:
+    def extend_paths(self, p: PathLike | list[PathLike]) -> bool:
         if isinstance(p, (str, Path)):
             if isinstance(p, str):
                 if (_p := Path(p)).is_file():
@@ -199,7 +198,7 @@ class EnsureImport(AbstractContextManager):
     @staticmethod
     def run_and_echo(cmd: str) -> int:
         logger.info(f"--> Executing shell command:\n {cmd}")
-        return subprocess.call(shlex.split(cmd))
+        return subprocess.call(shlex.split(cmd))  # nosec
 
     @staticmethod
     def log_error(action: str) -> None:
@@ -219,13 +218,14 @@ class EnsureImport(AbstractContextManager):
 
     @staticmethod
     def check_shell(cmd: str) -> bool:
-        return subprocess.call(shlex.split(cmd), stderr=subprocess.DEVNULL) == 0
+        rc = subprocess.call(shlex.split(cmd), stderr=subprocess.DEVNULL)  # nosec
+        return rc == 0
 
     @staticmethod
     def get_poetry_py_path() -> Path:
         cmd = "poetry env info --path"
-        r = subprocess.run(cmd.split(), capture_output=True)
-        return Path(r.stdout.strip().decode())
+        r = subprocess.run(cmd.split(), capture_output=True, encoding="utf-8")  # nosec
+        return Path(r.stdout.strip())
 
     @cached_property
     def workdir(self) -> Path:
@@ -245,7 +245,7 @@ class EnsureImport(AbstractContextManager):
             return True
 
     def install_and_extend_sys_path(self, *packages) -> int:
-        py: Union[str, Path] = Path(sys.executable)
+        py: str | Path = Path(sys.executable)
         depends = " ".join(packages)
         if not self._no_venv and not self.is_venv():
             if self.is_poetry_project(self.workdir):
