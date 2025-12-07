@@ -50,6 +50,17 @@ class EnsureImport(AbstractContextManager):
     inited = False
     instances: dict[str, EnsureImport] = {}
 
+    @staticmethod
+    def load_venv() -> None:
+        if "." not in sys.path:
+            sys.path.append(".")
+        for name in (".venv", "venv"):
+            if ps := list(Path(name).rglob("site-packages")):
+                for p in ps:
+                    if (path := p.as_posix()) not in sys.path:
+                        sys.path.append(path)
+                break
+
     @classmethod
     def reset(cls) -> None:
         cls.inited = False
@@ -265,7 +276,7 @@ class EnsureImport(AbstractContextManager):
                     elif self.run_and_echo(f"{py} -m venv venv"):
                         self.log_error(f"create virtual environment for {py}")
                         return 1
-                if platform.platform().lower().startswith("win"):
+                if platform.system() == "Windows":
                     py = p / "Scripts" / "python.exe"
                 else:
                     py = p / "bin/python"
