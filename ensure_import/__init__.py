@@ -51,15 +51,21 @@ class EnsureImport(AbstractContextManager):
     instances: dict[str, EnsureImport] = {}
 
     @staticmethod
-    def load_venv() -> None:
+    def load_venv(*paths: str) -> None:
         if "." not in sys.path:
             sys.path.append(".")
-        for name in (".venv", "venv"):
+        if not paths:
+            paths = (".venv", "venv")
+        for name in paths:
             if ps := list(Path(name).rglob("site-packages")):
                 for p in ps:
                     if (path := p.as_posix()) not in sys.path:
                         sys.path.append(path)
                 break
+
+    @classmethod
+    def activate(cls, path=".venv") -> None:
+        cls.load_venv(path)
 
     @classmethod
     def reset(cls) -> None:
