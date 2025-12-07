@@ -7,7 +7,7 @@ from ensure_import import EnsureImport as _EI
 
 
 def _teardown():
-    subprocess.run(shlex.split("poetry install --sync"))
+    subprocess.run(shlex.split("uv sync --all-extras --all-groups"))
 
 
 def _run():

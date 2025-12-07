@@ -5,13 +5,14 @@ import sys
 from pathlib import Path
 
 WORK_DIR = Path(__file__).parent
-ROOT = WORK_DIR.parent.parent.parent
-sys.path.insert(0, ROOT.as_posix())
+ROOT = WORK_DIR.parent.parent
+if (_path := ROOT.as_posix()) not in sys.path:
+    sys.path.insert(0, _path)
 from ensure_import import EnsureImport
 
 
-def clear():
-    for name in ("venv", ".venv"):
+def clear(*venvs: str):
+    for name in ("venv", "env", *venvs):
         venv_path = WORK_DIR / name
         if venv_path.exists():
             shutil.rmtree(venv_path)
@@ -39,7 +40,7 @@ def _a():
     assert tomli != idna
     assert issubclass(ForeignKeyField, Field)
     assert not WORK_DIR.joinpath("venv").exists()
-    assert WORK_DIR.joinpath(".venv").exists() or EnsureImport.is_poetry_project(Path())
+    assert WORK_DIR.joinpath(".venv").exists()
     return timestamp
 
 
@@ -88,7 +89,7 @@ def run_test():
     _b(timestamp)
     EnsureImport.reset()
     _c(timestamp)
-    clear()
+    clear(".venv")
 
 
 def main():

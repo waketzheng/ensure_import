@@ -11,21 +11,21 @@ help:
 	@echo  "    lint    Auto-formats the code and check type hints"
 
 up:
-	poetry run fast upgrade
+	fast upgrade
 
 deps:
-	poetry install --all-extras
+	uv sync --all-extras --all-groups
 
 _check:
 	./scripts/check.py
 check: deps _build _check
 
 _lint:
-	poetry run fast lint
+	fast lint
 lint: deps _build _lint
 
 _test:
-	poetry run fast test
+	fast test
 test: deps _test
 
 _style:
@@ -33,7 +33,7 @@ _style:
 style: deps _style
 
 _build:
-	poetry build --clean
+	uv build --clear
 build: deps _build
 
 ci: check _build _test

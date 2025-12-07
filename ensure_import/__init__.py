@@ -6,6 +6,7 @@ import logging
 import platform
 import re
 import shlex
+import shutil
 import subprocess  # nosec
 import sys
 from contextlib import AbstractContextManager
@@ -206,12 +207,17 @@ class EnsureImport(AbstractContextManager):
 
     @classmethod
     def is_poetry_project(cls, dirpath: Path) -> bool:
-        toml_name = "pyproject.toml"
+        toml_file = Path("pyproject.toml")
         for _ in range(3):
-            if dirpath.joinpath(toml_name).exists():
+            toml_file = dirpath / toml_file.name
+            if toml_file.exists():
                 break
             dirpath = dirpath.parent
         else:
+            return False
+        if shutil.which("poetry") is None:
+            return False
+        if "[tool.poetry]" not in toml_file.read_text(encoding="utf-8"):
             return False
         cmd = "poetry run python -m pip --version"
         return cls.check_shell(cmd)
@@ -253,9 +259,12 @@ class EnsureImport(AbstractContextManager):
                 py = "poetry run python"
             else:
                 p = self.workdir / "venv"
-                if not p.exists() and self.run_and_echo(f"{py} -m venv venv"):
-                    self.log_error(f"create virtual environment for {py}")
-                    return 1
+                if not p.exists():
+                    if p.parent.joinpath(".venv").exists():
+                        p = p.with_name(".venv")
+                    elif self.run_and_echo(f"{py} -m venv venv"):
+                        self.log_error(f"create virtual environment for {py}")
+                        return 1
                 if platform.platform().lower().startswith("win"):
                     py = p / "Scripts" / "python.exe"
                 else:

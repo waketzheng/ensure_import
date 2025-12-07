@@ -11,18 +11,22 @@ dependencies = []
 [project.urls]
 homepage = "https://github.com/waketzheng/ensure_import"
 
-[tool.poetry]
-version = "0"
-packages = [{include = "ensure_import"}]
+[tool.pdm]
+version = {source="file", path="ensure_import/__init__.py"}
 
-[tool.poetry.group.dev.dependencies]
-types-pytz = "*"
-types-six = "*"
-types-ujson = "*"
-contextlib-chdir = {version="*", python="<3.11"}
-fast-dev-cli = "^0.14.0"
-bandit = "^1.8.3"
-pytest-mock = "^3.14.0"
+[dependency-groups]
+dev = [
+    "bandit>=1.8.6",
+    "mypy>=1.19.0",
+    "types-pytz>=2025.2.0.20251108",
+    "types-six>=1.17.0.20251009",
+    "types-ujson>=5.10.0.20250822",
+    "contextlib-chdir; python_version<'3.11'"
+]
+test = [
+    "coverage>=7.10.7",
+    "pytest-mock>=3.15.1",
+]
 
 [tool.mypy]
 pretty = true
@@ -46,5 +50,5 @@ extend-select = [
 "scripts/*.py" = ["UP009"]
 
 [build-system]
-requires = ["poetry-plugin-version"]
-build-backend = "poetry_plugin_version.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

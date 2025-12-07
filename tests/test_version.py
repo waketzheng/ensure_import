@@ -1,6 +1,6 @@
+import importlib.metadata
 import subprocess  # nosec
 import sys
-from pathlib import Path
 
 from ensure_import import __version__
 
@@ -29,16 +29,8 @@ else:
 
 
 def test_version():
+    assert importlib.metadata.version("ensure_import") == __version__
     r = subprocess.run(
-        ["poetry", "version", "-s"], capture_output=True, encoding="utf-8"
+        ["uv", "pip", "list", "-e"], capture_output=True, encoding="utf-8"
     )
-    assert r.stdout.strip().split()[-1] == __version__
-
-
-def test_poetry_add(tmp_path: Path):
-    package = Path(__file__).parent.resolve().parent
-    with chdir(tmp_path):
-        subprocess.run(["poetry", "new", "foo"])  # nosec
-        with chdir("foo"):
-            r = subprocess.run(["poetry", "add", package, "--lock"])  # nosec
-            assert r.returncode == 0
+    assert r.stdout.strip().splitlines()[-1].split()[1] == __version__

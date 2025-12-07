@@ -9,12 +9,12 @@ else:
 import pytest
 
 from ensure_import import EnsureImport as _EI
-from tests.utils import lock_sys_path
+from tests.utils import TEST_DIR, lock_sys_path
 
 
 def test_venv(mocker):
     mocker.patch("ensure_import.EnsureImport.is_venv", return_value=False)
-    with chdir(workdir := Path(__file__).parent / ("test_venv/" * 2)):
+    with chdir(workdir := TEST_DIR / ("test_venv/" * 2)):
         print(f"--> cd {workdir}")
         with lock_sys_path():
             sys.path.append(workdir.as_posix())
@@ -23,13 +23,17 @@ def test_venv(mocker):
             run_test()
 
 
-def test_poetry(mocker):
+def test_dot_venv(mocker):
     mocker.patch("ensure_import.EnsureImport.is_venv", return_value=False)
-    with chdir(workdir := Path(__file__).parent / "test_poetry"):
+    with chdir(workdir := TEST_DIR / "dot_venv"):
         print(f"--> cd {workdir}")
+        if not Path(".venv").exists():
+            py = ".".join([str(i) for i in sys.version_info][:2])
+            cmd = f"pdm venv create --with-pip {py}"
+            _EI.run_and_echo(cmd)
         with lock_sys_path():
             sys.path.append(workdir.as_posix())
-            from _test_poetry import run_test
+            from _test_dot_venv import run_test
 
             run_test()
 
