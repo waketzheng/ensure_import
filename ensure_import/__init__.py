@@ -14,7 +14,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Final, Union
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 logger = logging.getLogger(__name__)
 
 PathLike = Union[str, Path]
