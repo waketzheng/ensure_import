@@ -27,6 +27,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+      - uses: astral-sh/ruff-action@v3
       - uses: extractions/setup-just@v3  # Or: uv tool install rust-just
       - name: Prepare tools
         run: |
