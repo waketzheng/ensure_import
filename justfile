@@ -28,7 +28,7 @@ WARN_OS := "echo 'WARNING: This command only support Linux!'"
 
 [unix]
 venv *args:
-    @if test ! -e .venv; then {{ VENV_CREATE }} --with uv {{ args }}; fi
+    @if test ! -e .venv; then {{ VENV_CREATE }} --with uv --with-pip {{ args }}; fi
 [windows]
 venv *args:
     @if (-Not (Test-Path '.venv')) { {{ VENV_CREATE }} --with-pip {{ args }} }
