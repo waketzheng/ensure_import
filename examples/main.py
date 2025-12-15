@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from ensure_import import EnsureImport as _EI
+from ensure_import import EnsureImport
 
 """
 The ensure_import with auto create virtual environment,
@@ -13,19 +13,18 @@ Usage::
 
 """
 
-while _ei := _EI():
-    with _ei:
-        import uvicorn
-        from fastapi import FastAPI, Request
+with EnsureImport(modules="asynctor fastapi uvicorn"):
+    from asynctor.contrib.fastapi import runserver
+    from fastapi import FastAPI, Request
 
 
 app = FastAPI(title=Path(__file__).parent.name)
 
 
 @app.get("/")
-async def root(request: Request):
+async def root(request: Request) -> dict[str, list[str]]:
     return {"dir(request)": dir(request)}
 
 
 if __name__ == "__main__":
-    uvicorn.run("__main__:app", reload=True)
+    runserver(app)

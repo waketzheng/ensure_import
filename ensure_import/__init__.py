@@ -8,10 +8,14 @@ import shlex
 import shutil
 import subprocess  # nosec
 import sys
+from collections.abc import Sequence
 from contextlib import AbstractContextManager
 from functools import cached_property
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
+
+if TYPE_CHECKING:
+    from typing import Self
 
 __version__ = "0.5.1"
 logger = logging.getLogger(__name__)
@@ -86,6 +90,7 @@ class EnsureImport(AbstractContextManager):
         _exit=None,
         _debug=False,
         _venv_dir: str | None = None,
+        modules: Sequence[str] | str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -106,6 +111,11 @@ class EnsureImport(AbstractContextManager):
         self.inited = True
         self._debug = _debug
         self._venv_dir = _venv_dir
+        self._modules = (
+            (modules.split() if isinstance(modules, str) else list(modules))
+            if modules
+            else []
+        )
         self._set_params(
             _sys_path,
             _workdir,
@@ -192,6 +202,13 @@ class EnsureImport(AbstractContextManager):
         else:
             raise TypeError(f"Expected: str/Path/List/Set/Tuple\nGot: {type(p)}")
 
+    def __enter__(self) -> Self:
+        if self._modules:
+            if (p := self._sys_path) is not None:
+                self.extend_paths(p)
+            self._exec(*self._modules)
+        return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         if isinstance(exc_value, ImportError):
             self._tried += 1
@@ -215,7 +232,10 @@ class EnsureImport(AbstractContextManager):
             raise e
         package_mapping = dict(self.mapping, **self._mapping)
         ms = (package_mapping.get(i, i) for i in modules)
-        rc = self.install_and_extend_sys_path(*ms)
+        self._exec(*ms)
+
+    def _exec(self, *modules: str) -> None:
+        rc = self.install_and_extend_sys_path(*modules)
         if rc and self._exit:
             sys.exit(rc)
 
