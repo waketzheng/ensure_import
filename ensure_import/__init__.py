@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib
-import importlib.metadata
 import logging
 import platform
 import re
@@ -12,12 +11,12 @@ import sys
 from contextlib import AbstractContextManager
 from functools import cached_property
 from pathlib import Path
-from typing import Final, Union
+from typing import Final
 
 __version__ = "0.5.1"
 logger = logging.getLogger(__name__)
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 __all__ = ("__version__", "EnsureImport")
 

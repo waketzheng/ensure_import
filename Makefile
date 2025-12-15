@@ -11,21 +11,21 @@ help:
 	@echo  "    lint    Auto-formats the code and check type hints"
 
 up:
-	fast upgrade
+	@just up
 
 deps:
-	uv sync --all-extras --all-groups
+	@just deps
 
 _check:
-	./scripts/check.py
+	@just _check
 check: deps _build _check
 
 _lint:
-	fast lint
+	@just _lint
 lint: deps _build _lint
 
 _test:
-	fast test
+	@just _test
 test: deps _test
 
 _style:
