@@ -29,7 +29,9 @@ jobs:
           enable-cache: true
       - uses: extractions/setup-just@v3  # Or: uv tool install rust-just
       - name: Prepare tools
-        run: python -m pip install --upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+          uv tool install fastdevcli-slim
       - name: Setup PDM by uv
         run: |
           uv tool install pdm --with msgpack
