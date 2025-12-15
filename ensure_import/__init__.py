@@ -85,6 +85,7 @@ class EnsureImport(AbstractContextManager):
         _no_venv: bool | None = None,
         _exit=None,
         _debug=False,
+        _venv_dir: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -104,12 +105,14 @@ class EnsureImport(AbstractContextManager):
         self._py_path = sys.executable
         self.inited = True
         self._debug = _debug
+        self._venv_dir = _venv_dir
         self._set_params(
             _sys_path,
             _workdir,
             _install,
             _no_venv,
             _exit,
+            _venv_dir,
         )
 
     def _set_params(
@@ -119,6 +122,7 @@ class EnsureImport(AbstractContextManager):
         _install=None,
         _no_venv=None,
         _exit=True,
+        _venv_dir=None,
     ) -> None:
         if isinstance(_workdir, str):
             _workdir = Path(_workdir)
@@ -133,6 +137,9 @@ class EnsureImport(AbstractContextManager):
         if _exit is None:
             _exit = _sys_path is None
         self._exit = _exit
+        if _venv_dir is None:
+            _venv_dir = getattr(self, "VENV_DIR", "venv")
+        self._venv_dir = _venv_dir
 
     @property
     def trying(self) -> bool:
@@ -146,7 +153,14 @@ class EnsureImport(AbstractContextManager):
 
     def _clear_kw(self, packages) -> None:
         if packages:
-            params = ("_sys_path", "_workdir", "_no_venv", "_exit", "_install")
+            params = (
+                "_sys_path",
+                "_workdir",
+                "_no_venv",
+                "_exit",
+                "_install",
+                "_venv_dir",
+            )
             self._set_params(**{k: packages.pop(k, None) for k in params})
 
     def __call__(self, **packages) -> EnsureImport:
@@ -278,7 +292,7 @@ class EnsureImport(AbstractContextManager):
                 if not p.exists():
                     if p.parent.joinpath(".venv").exists():
                         p = p.with_name(".venv")
-                    elif self.run_and_echo(f"{py} -m venv venv"):
+                    elif self.run_and_echo(f"{py} -m venv {self._venv_dir}"):
                         self.log_error(f"create virtual environment for {py}")
                         return 1
                 if platform.system() == "Windows":
