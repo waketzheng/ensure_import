@@ -1,7 +1,7 @@
 [project]
 name = "ensure-import"
 dynamic = ["version"]
-description = "Auto install third part packages by pip into virtual environment when import error."
+description = "Auto install third part packages into virtual environment when import error."
 authors = [{name="Waket Zheng", email="waketzheng@gmail.com"}]
 readme = "README.md"
 license = {text="MIT"}
