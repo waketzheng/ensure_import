@@ -20,7 +20,8 @@ dev = [
     "types-pytz>=2025.2.0.20251108",
     "types-six>=1.17.0.20251009",
     "types-ujson>=5.10.0.20250822",
-    "contextlib-chdir; python_version<'3.11'"
+    "contextlib-chdir; python_version<'3.11'",
+    "typing-extensions; python_version<'3.11'"
 ]
 test = [
     "coverage>=7.10.7",

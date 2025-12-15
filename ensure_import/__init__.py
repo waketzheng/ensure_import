@@ -15,7 +15,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
-    from typing import Self
+    if sys.version_info > (3, 11):
+        from typing import Self
+    else:
+        from typing_extensions import Self
 
 __version__ = "0.5.1"
 logger = logging.getLogger(__name__)

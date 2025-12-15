@@ -146,6 +146,7 @@ dev = [
     { name = "types-pytz" },
     { name = "types-six" },
     { name = "types-ujson" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 test = [
     { name = "coverage" },
@@ -162,6 +163,7 @@ dev = [
     { name = "types-pytz", specifier = ">=2025.2.0.20251108" },
     { name = "types-six", specifier = ">=1.17.0.20251009" },
     { name = "types-ujson", specifier = ">=5.10.0.20250822" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 test = [
     { name = "coverage", specifier = ">=7.10.7" },
