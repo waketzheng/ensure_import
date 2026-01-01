@@ -58,7 +58,7 @@ class EnsureImport(AbstractContextManager):
     instances: dict[str, EnsureImport] = {}
 
     @staticmethod
-    def load_venv(*paths: str) -> None:
+    def load_venv(*paths: str, verbose: bool = False) -> None:
         if "." not in sys.path:
             sys.path.append(".")
         if not paths:
@@ -67,11 +67,29 @@ class EnsureImport(AbstractContextManager):
             if ps := list(Path(name).rglob("site-packages")):
                 for p in ps:
                     site.addsitedir(p.as_posix())
+                    if verbose:
+                        print(
+                            f"Add {p} to sitedir, you can run `EnsureImport.show()` to see available modules"
+                        )
                 break
 
     @classmethod
-    def activate(cls, path=".venv") -> None:
-        cls.load_venv(path)
+    def activate(cls, path=".venv", verbose: bool = False) -> None:
+        cls.load_venv(path, verbose=verbose)
+
+    @classmethod
+    def show(cls, verbose=False, pretty=False) -> list[str]:
+        all_ms = {i.split(".")[0] for i in sys.modules}
+        third_parts = all_ms - set(sys.stdlib_module_names) - {"sitecustomize"}
+        public = [i for i in third_parts if not i.startswith("_")]
+        if verbose:
+            if pretty:
+                import pprint
+
+                pprint.pprint(public)
+            else:
+                print(public)
+        return public
 
     @classmethod
     def reset(cls) -> None:
