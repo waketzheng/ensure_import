@@ -51,10 +51,12 @@ lock *args:
 
 up:
     @just lock --upgrade
+    @just deps --frozen
 
 [unix]
 clear *args:
     uv sync --all-extras --all-groups {{args}}
+    @uv run --no-sync fast pypi --quiet
 [windows]
 clear *args:
     @echo "WARNING: It may cost 10 minutes! You can enter Crtl-C to exit."
