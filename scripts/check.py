@@ -21,18 +21,18 @@ work_dir = os.path.dirname(parent)
 if os.getcwd() != work_dir:
     os.chdir(work_dir)
 
-cmd = f"{TOOL} run {CMD}" if TOOL else CMD
+cmd = (TOOL + " run " + CMD) if TOOL else CMD
 if os.system(cmd) != 0:
     print("\033[1m Please run './scripts/format.py' to auto-fix style issues \033[0m")
     sys.exit(1)
-cmd = f"{TOOL} run " * bool(TOOL) + "mypy ."
+cmd = (TOOL + " run ") * bool(TOOL) + "mypy ."
 if os.system(cmd) != 0:
     sys.exit(1)
 
 if BANDIT:
     package_name = os.path.basename(work_dir).replace("-", "_")
     cmd = "{}bandit -c pyproject.toml -r {}".format(
-        TOOL and f"{TOOL} run ", package_name
+        TOOL and (TOOL + " run "), package_name
     )
     print("-->", cmd)
     if os.system(cmd) != 0:

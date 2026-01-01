@@ -18,6 +18,6 @@ work_dir = os.path.dirname(_parent)
 if os.getcwd() != work_dir:
     os.chdir(work_dir)
 
-cmd = (TOOL and f"{TOOL} run ") + CMD
+cmd = (TOOL and (TOOL + " run ")) + CMD
 if os.system(cmd) != 0:
     sys.exit(1)
