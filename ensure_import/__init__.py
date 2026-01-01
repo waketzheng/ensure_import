@@ -6,6 +6,7 @@ import platform
 import re
 import shlex
 import shutil
+import site
 import subprocess  # nosec
 import sys
 from collections.abc import Sequence
@@ -65,8 +66,7 @@ class EnsureImport(AbstractContextManager):
         for name in paths:
             if ps := list(Path(name).rglob("site-packages")):
                 for p in ps:
-                    if (path := p.as_posix()) not in sys.path:
-                        sys.path.append(path)
+                    site.addsitedir(p.as_posix())
                 break
 
     @classmethod
