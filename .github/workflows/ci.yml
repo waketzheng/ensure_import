@@ -33,14 +33,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           uv tool install fastdevcli-slim
+          uv tool install ty
       - name: Setup PDM by uv
         run: |
-          uv tool install pdm --with msgpack
+          uv tool install pdm
           pdm config check_update false
           pdm config use_uv true
       - name: Check code style and Type Hint
         run: just check
       - name: test
-        run: uv run --no-sync coverage run -m pytest -s
-      - name: report
-        run: uv run --no-sync coverage report --omit="tests/*" -m
+        run: just _test
