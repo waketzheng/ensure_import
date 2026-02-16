@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import contextlib
+import functools
 import importlib
 import logging
+import math
+import os
 import platform
+import random
 import re
 import shlex
 import shutil
@@ -26,7 +31,21 @@ logger = logging.getLogger(__name__)
 
 PathLike = str | Path
 
-__all__ = ("__version__", "EnsureImport")
+__all__ = (
+    "__version__",
+    "EnsureImport",
+    "Path",
+    "contextlib",
+    "functools",
+    "math",
+    "os",
+    "platform",
+    "random",
+    "re",
+    "sys",
+    "subprocess",
+    "shutil",
+)
 
 
 class EnsureImport(AbstractContextManager):
@@ -81,7 +100,7 @@ class EnsureImport(AbstractContextManager):
     def show(cls, verbose=False, pretty=False) -> list[str]:
         all_ms = {i.split(".")[0] for i in sys.modules}
         third_parts = all_ms - set(sys.stdlib_module_names) - {"sitecustomize"}
-        public = [i for i in third_parts if not i.startswith("_")]
+        public = [i for i in sorted({*third_parts, *__all__}) if not i.startswith("_")]
         if verbose:
             if pretty:
                 import pprint
