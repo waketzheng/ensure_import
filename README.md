@@ -70,3 +70,14 @@ except ImportError:
 
     import local_module
 ```
+
+- Use with ipython
+```bash
+uvx --python=.venv/bin/python --with=ensure-import ipython
+```
+In IPython:
+```
+# Append '.venv/lib/python3.x/site-packages' to sys.path
+# So that no need to install ipython into virtual environment
+In [1]: from ensure_import import *;EnsureImport.activate(verbose=True);EnsureImport.show()
+```
