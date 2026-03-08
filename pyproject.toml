@@ -33,6 +33,9 @@ pretty = true
 ignore_missing_imports = true
 check_untyped_defs = true
 
+[tool.ty.rules]
+unresolved-import = 'ignore'
+
 [tool.ruff.lint]
 ignore = ["E501"]
 extend-select = [
