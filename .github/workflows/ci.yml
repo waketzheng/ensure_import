@@ -32,7 +32,7 @@ jobs:
       - name: Prepare tools
         run: |
           python -m pip install --upgrade pip
-          uv tool install fastdevcli-slim
+          uv tool install fast-dev-cli
           uv tool install ty
       - name: Setup PDM by uv
         run: |
