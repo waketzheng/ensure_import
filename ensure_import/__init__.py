@@ -171,7 +171,7 @@ class EnsureImport(AbstractContextManager):
         _workdir=None,
         _install=None,
         _no_venv=None,
-        _exit=True,
+        _exit: bool | None = True,
         _venv_dir=None,
     ) -> None:
         if isinstance(_workdir, str):
@@ -272,7 +272,7 @@ class EnsureImport(AbstractContextManager):
             raise e
         package_mapping = dict(self.mapping, **self._mapping)
         ms = (package_mapping.get(i, i) for i in modules)
-        self._exec(*ms)
+        self._exec(*ms)  # pyright: ignore[reportArgumentType]
 
     def _exec(self, *modules: str) -> None:
         rc = self.install_and_extend_sys_path(*modules)
