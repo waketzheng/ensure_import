@@ -3,9 +3,11 @@ from __future__ import annotations
 import contextlib
 import functools
 import importlib
+import json
 import logging
 import math
 import os
+import pkgutil
 import platform
 import random
 import re
@@ -14,8 +16,10 @@ import shutil
 import site
 import subprocess  # nosec
 import sys
+import time
 from collections.abc import Sequence
 from contextlib import AbstractContextManager
+from datetime import datetime, timedelta
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
@@ -36,15 +40,20 @@ __all__ = (
     "EnsureImport",
     "Path",
     "contextlib",
+    "datetime",
     "functools",
+    "json",
     "math",
     "os",
     "platform",
     "random",
     "re",
     "sys",
-    "subprocess",
+    "shlex",
     "shutil",
+    "subprocess",
+    "time",
+    "timedelta",
 )
 
 
@@ -77,7 +86,7 @@ class EnsureImport(AbstractContextManager):
     instances: dict[str, EnsureImport] = {}
 
     @staticmethod
-    def load_venv(*paths: str, verbose: bool = False) -> None:
+    def load_venv(*paths: str, verbose: bool = False) -> list[Path]:
         if "." not in sys.path:
             sys.path.append(".")
         if not paths:
@@ -88,26 +97,44 @@ class EnsureImport(AbstractContextManager):
                     site.addsitedir(p.as_posix())
                     if verbose:
                         print(
-                            f"Add {p} to sitedir, you can run `EnsureImport.show()` to see available modules"
+                            f"Add {p} to sitedir, you can run `EnsureImport.show(verbose=True)` to see available modules"
                         )
-                break
+                return ps
+        return []
 
     @classmethod
     def activate(cls, path=".venv", verbose: bool = False) -> None:
         cls.load_venv(path, verbose=verbose)
 
     @classmethod
-    def show(cls, verbose=False, pretty=False) -> list[str]:
+    def show(cls, verbose: bool = False, pretty: bool = False) -> list[str] | None:
+        imported = list(__all__)
         all_ms = {i.split(".")[0] for i in sys.modules}
+        for site_packages in cls.load_venv(".venv"):
+            all_ms |= {
+                name for _finder, name, _ispkg in pkgutil.iter_modules([site_packages])
+            }
         third_parts = all_ms - set(sys.stdlib_module_names) - {"sitecustomize"}
-        public = [i for i in sorted({*third_parts, *__all__}) if not i.startswith("_")]
+        importable = [
+            i
+            for i in sorted(third_parts - set(imported))
+            if not i.startswith("_") and not i[0].isdigit()
+        ]
+        public = [
+            i
+            for i in sorted({*third_parts, *imported})
+            if not i.startswith("_") and not i[0].isdigit()
+        ]
         if verbose:
+            print(f"These modules can be used directly:\n  {imported}")
+            print("\nThe following packages are available to be imported:")
             if pretty:
                 import pprint
 
-                pprint.pprint(public)
+                pprint.pprint(importable)
             else:
-                print(public)
+                print(importable)
+            return None
         return public
 
     @classmethod
