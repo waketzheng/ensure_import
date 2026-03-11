@@ -10,6 +10,12 @@ repos:
   - repo: local
     hooks:
       - id: check
-        name: check by ruff/mypy
+        name: check by ruff/ty/bandit
         entry: ./scripts/check.py
         language: script
+
+      - id: pypi
+        name: ensure pypi for uv lock
+        files: 'uv.lock'
+        entry: pdm run fast pypi --slim
+        language: system

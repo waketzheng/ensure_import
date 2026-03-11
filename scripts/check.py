@@ -25,7 +25,7 @@ cmd = (TOOL + " run " + CMD) if TOOL else CMD
 if os.system(cmd) != 0:
     print("\033[1m Please run './scripts/format.py' to auto-fix style issues \033[0m")
     sys.exit(1)
-cmd = (TOOL + " run ") * bool(TOOL) + "mypy ."
+cmd = (TOOL + " run ") * bool(TOOL) + "ty check ."
 if os.system(cmd) != 0:
     sys.exit(1)
 
