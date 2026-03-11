@@ -111,9 +111,8 @@ class EnsureImport(AbstractContextManager):
         imported = list(__all__)
         all_ms = {i.split(".")[0] for i in sys.modules}
         for site_packages in cls.load_venv(".venv"):
-            all_ms |= {
-                name for _finder, name, _ispkg in pkgutil.iter_modules([site_packages])
-            }
+            module_infos = pkgutil.iter_modules([str(site_packages)])
+            all_ms |= {name for _finder, name, _ispkg in module_infos}
         third_parts = all_ms - set(sys.stdlib_module_names) - {"sitecustomize"}
         importable = [
             i
