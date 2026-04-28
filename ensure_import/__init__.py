@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     else:
         from typing_extensions import Self
 
-__version__ = "0.6.5"
+__version__ = "0.6.6"
 logger = logging.getLogger(__name__)
 
 PathLike = str | Path
