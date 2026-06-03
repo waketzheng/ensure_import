@@ -23,6 +23,7 @@ import time
 from collections.abc import Sequence
 from contextlib import AbstractContextManager
 from datetime import datetime, timedelta
+from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
@@ -40,6 +41,7 @@ PathLike = str | Path
 
 __all__ = (
     "__version__",
+    "Decimal",
     "EnsureImport",
     "Path",
     "base64",
@@ -54,6 +56,7 @@ __all__ = (
     "platform",
     "random",
     "re",
+    "shlex",
     "sys",
     "shlex",
     "shutil",
@@ -216,7 +219,6 @@ class EnsureImport(AbstractContextManager):
     ) -> None:
         if isinstance(_workdir, str):
             _workdir = Path(_workdir)
-        self.__dict__.pop("workdir", None)
         self._workdir = _workdir
         self._sys_path = _sys_path
         if _install is None:
