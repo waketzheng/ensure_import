@@ -96,23 +96,23 @@ clear *args:
 run *args: venv
     .venv/{{BIN_DIR}}/{{args}}
 
-_lint *args:
-    pdm run fast lint --ty --bandit {{args}}
-    @just mypy {{SRC}}
-    @just right {{SRC}}
-
 uvx_py *args:
     uvx --python={{PY_EXEC}} {{args}}
 
-mypy *args:
-    @just uvx_py mypy --python-executable={{PY_EXEC}} {{args}}
+mypy path=(SRC) *args:
+    @just uvx_py mypy --python-executable={{PY_EXEC}} {{path}} {{args}}
 
-mypy310 *args:
-    uv export --python=3.10 --no-hashes --all-extras --all-groups --no-group test --frozen -o dev_requirements.txt
-    uvx --python=3.10 --with-requirements=dev_requirements.txt mypy --cache-dir=.mypy310_cache {{SRC}} {{args}}
+mypy310 path=(SRC) *args:
+    uv export --python=3.10 --no-hashes --all-extras --all-groups --frozen -o dev_requirements.txt
+    uvx --python=3.10 --with-requirements=dev_requirements.txt mypy --cache-dir=.mypy310_cache {{path}} {{args}}
 
-right *args:
-    @just uvx_py pyright --pythonpath={{PY_EXEC}} {{args}}
+right path=(SRC) *args:
+    @just uvx_py pyright --pythonpath={{PY_EXEC}} {{path}} {{args}}
+
+_lint *args:
+    pdm run fast lint --ty --bandit {{args}}
+    @just mypy
+    @just right
 
 lint *args: deps
     @just _lint {{args}}
@@ -127,7 +127,7 @@ style *args: deps
 
 _check *args:
     pdm run fast check --ty {{args}}
-    @just mypy {{SRC}}
+    just mypy
 
 check *args: deps
     @just _check {{args}}

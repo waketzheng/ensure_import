@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
 import contextlib
 import functools
+import hashlib
 import importlib
+import itertools
 import json
 import logging
 import math
@@ -30,7 +33,7 @@ if TYPE_CHECKING:
     else:
         from typing_extensions import Self
 
-__version__ = "0.6.5"
+__version__ = "0.6.6"
 logger = logging.getLogger(__name__)
 
 PathLike = str | Path
@@ -39,9 +42,12 @@ __all__ = (
     "__version__",
     "EnsureImport",
     "Path",
+    "base64",
     "contextlib",
     "datetime",
     "functools",
+    "hashlib",
+    "itertools",
     "json",
     "math",
     "os",
