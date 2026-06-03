@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
-    if sys.version_info > (3, 11):
+    if sys.version_info >= (3, 11):
         from typing import Self
     else:
         from typing_extensions import Self
@@ -147,8 +147,20 @@ class EnsureImport(AbstractContextManager):
         cls.inited = False
         cls.instances.clear()
 
+    @staticmethod
+    def _cache_key(args, kwargs) -> str:
+        return repr((args, tuple(sorted(kwargs.items()))))
+
+    @staticmethod
+    def _normalize_modules(modules: Sequence[str] | str | None) -> list[str]:
+        if modules is None:
+            return []
+        if isinstance(modules, str):
+            return modules.split()
+        return list(modules)
+
     def __new__(cls, *args, **kwargs):
-        if (key := f"*{args}, **{kwargs}") in cls.instances:
+        if (key := cls._cache_key(args, kwargs)) in cls.instances:
             return cls.instances[key]
         self = cls.instances[key] = super().__new__(cls)
         return self
@@ -183,11 +195,7 @@ class EnsureImport(AbstractContextManager):
         self.inited = True
         self._debug = _debug
         self._venv_dir = _venv_dir
-        self._modules = (
-            (modules.split() if isinstance(modules, str) else list(modules))
-            if modules
-            else []
-        )
+        self._modules = self._normalize_modules(modules)
         self._set_params(
             _sys_path,
             _workdir,
@@ -208,6 +216,7 @@ class EnsureImport(AbstractContextManager):
     ) -> None:
         if isinstance(_workdir, str):
             _workdir = Path(_workdir)
+        self.__dict__.pop("workdir", None)
         self._workdir = _workdir
         self._sys_path = _sys_path
         if _install is None:
@@ -234,22 +243,32 @@ class EnsureImport(AbstractContextManager):
         return self.trying
 
     def _clear_kw(self, packages) -> None:
-        if packages:
-            params = (
-                "_sys_path",
-                "_workdir",
-                "_no_venv",
-                "_exit",
-                "_install",
-                "_venv_dir",
-            )
-            self._set_params(**{k: packages.pop(k, None) for k in params})
+        params = (
+            "_sys_path",
+            "_workdir",
+            "_install",
+            "_no_venv",
+            "_exit",
+            "_venv_dir",
+        )
+        overrides = {k: packages.pop(k) for k in tuple(packages) if k in params}
+        if overrides:
+            current = {k: getattr(self, k) for k in params}
+            current.update(overrides)
+            self._set_params(**current)
 
-    def __call__(self, **packages) -> EnsureImport:
-        return self.auto_load(**packages)
+    def __call__(
+        self, modules: Sequence[str] | str | None = None, **packages
+    ) -> EnsureImport:
+        return self.auto_load(modules=modules, **packages)
 
-    def auto_load(self, **packages) -> EnsureImport:
+    def auto_load(
+        self, modules: Sequence[str] | str | None = None, **packages
+    ) -> EnsureImport:
         self._clear_kw(packages)
+        if modules is not None:
+            self._modules = self._normalize_modules(modules)
+        self._mapping.update(packages)
         return self
 
     @property
@@ -298,8 +317,37 @@ class EnsureImport(AbstractContextManager):
             self._trying = False
             self._success = True
 
-    def run(self, e) -> None:
-        modules = re.findall(r"'([a-zA-Z][0-9a-zA-Z_]+)'", str(e))
+    @staticmethod
+    def _top_level_module(name: str) -> str | None:
+        module = name.partition(".")[0]
+        if module.isidentifier():
+            return module
+        return None
+
+    @classmethod
+    def _missing_modules(cls, e: ImportError) -> list[str]:
+        if not isinstance(e, ModuleNotFoundError):
+            return []
+
+        names = []
+        if e.name:
+            names.append(e.name)
+        names.extend(
+            re.findall(
+                r"No module named ['\"]([a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)['\"]",
+                str(e),
+            )
+        )
+
+        modules = []
+        for name in names:
+            module = cls._top_level_module(name)
+            if module and module not in modules:
+                modules.append(module)
+        return modules
+
+    def run(self, e: ImportError) -> None:
+        modules = self._missing_modules(e)
         if not modules or "--no-install" in sys.argv:
             raise e
         package_mapping = dict(self.mapping, **self._mapping)
@@ -373,6 +421,8 @@ class EnsureImport(AbstractContextManager):
             return True
 
     def install_and_extend_sys_path(self, *packages) -> int:
+        if not packages:
+            return 0
         py: str | Path = Path(sys.executable)
         depends = " ".join(packages)
         if not self._no_venv and not self.is_venv():

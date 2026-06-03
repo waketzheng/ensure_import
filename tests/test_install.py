@@ -59,6 +59,81 @@ def test_set_params():
     assert _ei._no_venv is True
 
 
+def test_auto_load_updates_mapping_and_keeps_params(mocker):
+    _EI.reset()
+    try:
+        _ei = _EI(_install=False, _no_venv=True, _exit=False)
+        _ei(custom_module="custom-package", _workdir=".")
+
+        assert _ei._install is False
+        assert _ei._no_venv is True
+        assert _ei._exit is False
+        assert _ei._workdir == Path(".")
+        assert "_workdir" not in _ei._mapping
+        assert _ei._mapping["custom_module"] == "custom-package"
+
+        exec_mock = mocker.patch.object(_ei, "_exec")
+        _ei.run(ModuleNotFoundError("No module named 'custom_module'"))
+        exec_mock.assert_called_once_with("custom-package")
+    finally:
+        _EI.reset()
+
+
+def test_run_ignores_non_missing_module_import_error(mocker):
+    _EI.reset()
+    try:
+        _ei = _EI(_install=False)
+        exec_mock = mocker.patch.object(_ei, "_exec")
+        error = ImportError("cannot import name 'Thing' from 'pkg'")
+
+        with pytest.raises(ImportError) as exc_info:
+            _ei.run(error)
+
+        assert exc_info.value is error
+        exec_mock.assert_not_called()
+    finally:
+        _EI.reset()
+
+
+def test_run_maps_dotted_missing_module_to_top_level_package(mocker):
+    _EI.reset()
+    try:
+        _ei = _EI(google="google-cloud-storage")
+        exec_mock = mocker.patch.object(_ei, "_exec")
+
+        _ei.run(ModuleNotFoundError("No module named 'google.cloud'"))
+
+        exec_mock.assert_called_once_with("google-cloud-storage")
+    finally:
+        _EI.reset()
+
+
+def test_instance_cache_is_kwargs_order_independent():
+    _EI.reset()
+    try:
+        assert _EI(foo="bar", baz="qux") is _EI(baz="qux", foo="bar")
+    finally:
+        _EI.reset()
+
+
+def test_auto_load_refreshes_cached_workdir(tmp_path: Path):
+    _EI.reset()
+    try:
+        first = tmp_path / "first"
+        second = tmp_path / "second"
+        first.mkdir()
+        second.mkdir()
+        _ei = _EI(_workdir=first)
+
+        assert _ei.workdir == first
+
+        _ei(_workdir=second)
+
+        assert _ei.workdir == second
+    finally:
+        _EI.reset()
+
+
 def test_install_failed(mocker):
     mocker.patch(
         "ensure_import.EnsureImport.install_and_extend_sys_path", return_value=0
