@@ -20,13 +20,14 @@ import site
 import subprocess  # nosec
 import sys
 import time
+import types
 from collections.abc import Sequence
-from contextlib import AbstractContextManager
+from contextlib import AbstractContextManager, suppress
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, ClassVar, Final
 
 if TYPE_CHECKING:
     if sys.version_info >= (3, 11):
@@ -39,11 +40,11 @@ logger = logging.getLogger(__name__)
 
 PathLike = str | Path
 
-__all__ = (
-    "__version__",
+__all__ = [
     "Decimal",
     "EnsureImport",
     "Path",
+    "__version__",
     "base64",
     "contextlib",
     "datetime",
@@ -57,13 +58,18 @@ __all__ = (
     "random",
     "re",
     "shlex",
-    "sys",
-    "shlex",
     "shutil",
     "subprocess",
+    "sys",
     "time",
     "timedelta",
-)
+]
+
+with suppress(ImportError):
+    import more_itertools
+    from more_itertools import ilen
+
+    __all__ += ["ilen", "more_itertools"]
 
 
 class EnsureImport(AbstractContextManager):
@@ -83,7 +89,7 @@ class EnsureImport(AbstractContextManager):
         ...
     """
 
-    mapping = {
+    mapping: ClassVar[dict[str, str]] = {
         "multipart": "python-multipart",
         "tortoise": "tortoise-orm",
         "dotenv": "python-dotenv",
@@ -92,7 +98,7 @@ class EnsureImport(AbstractContextManager):
     RETRY: Final = 30
     retry = RETRY
     inited = False
-    instances: dict[str, EnsureImport] = {}
+    instances: ClassVar[dict[str, EnsureImport]] = {}
 
     @staticmethod
     def load_venv(*paths: str, verbose: bool = False) -> list[Path]:
@@ -112,7 +118,7 @@ class EnsureImport(AbstractContextManager):
         return []
 
     @classmethod
-    def activate(cls, path=".venv", verbose: bool = False) -> None:
+    def activate(cls, path: str = ".venv", verbose: bool = False) -> None:
         cls.load_venv(path, verbose=verbose)
 
     @classmethod
@@ -151,7 +157,7 @@ class EnsureImport(AbstractContextManager):
         cls.instances.clear()
 
     @staticmethod
-    def _cache_key(args, kwargs) -> str:
+    def _cache_key(args: str, kwargs: str) -> str:
         return repr((args, tuple(sorted(kwargs.items()))))
 
     @staticmethod
@@ -162,7 +168,11 @@ class EnsureImport(AbstractContextManager):
             return modules.split()
         return list(modules)
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(
+        cls,
+        *args: PathLike | list[PathLike] | bool | Sequence[str] | None,
+        **kwargs: str | bool | None,
+    ) -> Self:
         if (key := cls._cache_key(args, kwargs)) in cls.instances:
             return cls.instances[key]
         self = cls.instances[key] = super().__new__(cls)
@@ -174,11 +184,11 @@ class EnsureImport(AbstractContextManager):
         _workdir: PathLike | None = None,
         _install: bool | None = None,
         _no_venv: bool | None = None,
-        _exit=None,
-        _debug=False,
+        _exit: bool | None = None,
+        _debug: bool = False,
         _venv_dir: str | None = None,
         modules: Sequence[str] | str | None = None,
-        **kwargs,
+        **kwargs: str | None,
     ) -> None:
         """
         :param _sys_path: directory path to append to sys.path
@@ -210,12 +220,12 @@ class EnsureImport(AbstractContextManager):
 
     def _set_params(
         self,
-        _sys_path=None,
-        _workdir=None,
-        _install=None,
-        _no_venv=None,
+        _sys_path: str | None = None,
+        _workdir: str | None = None,
+        _install: str | None = None,
+        _no_venv: str | None = None,
         _exit: bool | None = True,
-        _venv_dir=None,
+        _venv_dir: str | None = None,
     ) -> None:
         if isinstance(_workdir, str):
             _workdir = Path(_workdir)
@@ -244,28 +254,30 @@ class EnsureImport(AbstractContextManager):
     def __bool__(self) -> bool:
         return self.trying
 
-    def _clear_kw(self, packages) -> None:
-        params = (
+    def _clear_kw(self, packages: dict[str, Any]) -> None:
+        params = {
             "_sys_path",
             "_workdir",
             "_install",
             "_no_venv",
             "_exit",
             "_venv_dir",
-        )
-        overrides = {k: packages.pop(k) for k in tuple(packages) if k in params}
+        }
+        hints = packages.keys() & params
+        overrides = {k: packages.pop(k) for k in hints}
         if overrides:
-            current = {k: getattr(self, k) for k in params}
-            current.update(overrides)
+            current = {
+                k: overrides[k] if k in hints else getattr(self, k) for k in params
+            }
             self._set_params(**current)
 
     def __call__(
-        self, modules: Sequence[str] | str | None = None, **packages
+        self, modules: Sequence[str] | str | None = None, **packages: str
     ) -> EnsureImport:
         return self.auto_load(modules=modules, **packages)
 
     def auto_load(
-        self, modules: Sequence[str] | str | None = None, **packages
+        self, modules: Sequence[str] | str | None = None, **packages: str
     ) -> EnsureImport:
         self._clear_kw(packages)
         if modules is not None:
@@ -302,7 +314,12 @@ class EnsureImport(AbstractContextManager):
             self._exec(*self._modules)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> bool | None:
         if isinstance(exc_value, ImportError):
             self._tried += 1
             if (p := self._sys_path) is None:
@@ -402,7 +419,9 @@ class EnsureImport(AbstractContextManager):
     @staticmethod
     def get_poetry_py_path() -> Path:
         cmd = "poetry env info --path"
-        r = subprocess.run(cmd.split(), capture_output=True, encoding="utf-8")  # nosec
+        r = subprocess.run(
+            cmd.split(), capture_output=True, encoding="utf-8", check=False
+        )  # nosec
         return Path(r.stdout.strip())
 
     @cached_property
@@ -422,7 +441,7 @@ class EnsureImport(AbstractContextManager):
         else:
             return True
 
-    def install_and_extend_sys_path(self, *packages) -> int:
+    def install_and_extend_sys_path(self, *packages: str) -> int:
         if not packages:
             return 0
         py: str | Path = Path(sys.executable)
@@ -443,7 +462,8 @@ class EnsureImport(AbstractContextManager):
                     py = p / "Scripts" / "python.exe"
                 else:
                     py = p / "bin/python"
-            if (lib := list(p.rglob("site-packages"))[0].as_posix()) not in sys.path:
+            lib = next(p.rglob("site-packages")).as_posix()
+            if lib not in sys.path:
                 sys.path.append(lib)
                 if not self.check_shell(f"{py} -c 'import ensure_import'"):
                     sys.path.append(Path(__file__).parent.parent.as_posix())

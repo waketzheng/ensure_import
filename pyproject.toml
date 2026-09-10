@@ -6,12 +6,25 @@ authors = [{name="Waket Zheng", email="waketzheng@gmail.com"}]
 readme = "README.md"
 license = {text="MIT"}
 requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 
 [project.urls]
 homepage = "https://github.com/waketzheng/ensure_import"
 
-[tool.pdm]
-version = {source="file", path="ensure_import/__init__.py"}
+[tool.pdm.version]
+path = "ensure_import/__init__.py"
 
 [dependency-groups]
 dev = [
@@ -21,7 +34,8 @@ dev = [
     "types-six>=1.17.0.20251009",
     "types-ujson>=5.10.0.20250822",
     "contextlib-chdir; python_version<'3.11'",
-    "typing-extensions; python_version<'3.11'"
+    "typing-extensions; python_version<'3.11'",
+    "more-itertools>=11.1.0",
 ]
 test = [
     "coverage>=7.10.7",
@@ -46,11 +60,13 @@ extend-select = [
     "B",  # flake8-bugbear
     "C4", # flake8-comprehensions
     "UP", # https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "ANN",# https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "_test_*.py" = ["E401", "E402"]
-"scripts/*.py" = ["UP009"]
+"tests/**.py" = ["BLE001", "ANN"]
+"scripts/*.py" = ["UP009", "ANN"]
 
 [build-system]
 requires = ["pdm-backend"]

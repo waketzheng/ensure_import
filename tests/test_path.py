@@ -29,7 +29,7 @@ def test_path(tmp_path: Path):
         try:
             while _ei := EnsureImport(subpath):
                 with _ei:
-                    import module_name_1  # noqa: F811
+                    import module_name_1
         except BaseException as e:
             e2 = e
 
@@ -45,5 +45,5 @@ def test_path_exists(tmp_path: Path):
     with chdir(tmp_path):
         while _ei := EnsureImport(subpath, _debug=True):
             with _ei:
-                import module_name_1  # noqa: F811
+                import module_name_1
         assert Path(module_name_1.__file__) == m

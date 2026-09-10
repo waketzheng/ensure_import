@@ -31,6 +31,6 @@ else:
 def test_version():
     assert importlib.metadata.version("ensure_import") == __version__
     r = subprocess.run(
-        ["uv", "pip", "list", "-e"], capture_output=True, encoding="utf-8"
+        ["uv", "pip", "list", "-e"], capture_output=True, encoding="utf-8", check=False
     )
     assert r.stdout.strip().splitlines()[-1].split()[1] == __version__

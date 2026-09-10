@@ -24,17 +24,18 @@ while _ei := _EI():
 - Package name is difference from module name
 ```py
 while _ei := _EI():
-    with _ei(dotenv='python-dotenv', odbc='pyodbc'):
+    with _ei(dotenv="python-dotenv", odbc="pyodbc"):
         import numpy as np
         import uvicorn
         import odbc  # who's package name is `pyodbc`
         from fastapi import FastAPI
+
         # package name of dotenv is `python-dotenv`
         from dotenv import load_dotenv
 ```
 - Supply module path
 ```py
-while _ei := _EI('..'):
+while _ei := _EI(".."):
     with _ei:
         import gunicorn
         import uvicorn
@@ -46,7 +47,8 @@ try:
     import uvicorn
 except ImportError:
     import sys
-    sys.path.append('..')
+
+    sys.path.append("..")
 
     import gunicorn
     import uvicorn
@@ -64,6 +66,7 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     dirpath: str = Path(__file__).parent.as_posix()
     if dirpath not in sys.path:
         sys.path.append(dirpath)

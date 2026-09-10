@@ -7,7 +7,7 @@ from ensure_import import EnsureImport as _EI
 
 
 def _teardown():
-    subprocess.run(shlex.split("uv sync --all-extras --all-groups"))
+    subprocess.run(shlex.split("uv sync --all-extras --all-groups"), check=False)
 
 
 def _run():
