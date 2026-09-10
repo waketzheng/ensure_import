@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import contextlib
 import functools
 import hashlib
 import importlib
+import io
 import itertools
 import json
 import logging
@@ -45,11 +47,13 @@ __all__ = [
     "EnsureImport",
     "Path",
     "__version__",
+    "asyncio",
     "base64",
     "contextlib",
     "datetime",
     "functools",
     "hashlib",
+    "io",
     "itertools",
     "json",
     "math",
