@@ -287,14 +287,14 @@ class EnsureImport(AbstractContextManager):
         self,
         modules: Sequence[str] | str | None = None,
         **packages: PathLike | list[PathLike] | bool | None,
-    ) -> EnsureImport:
+    ) -> Self:
         return self.auto_load(modules=modules, **packages)
 
     def auto_load(
         self,
         modules: Sequence[str] | str | None = None,
         **packages: PathLike | list[PathLike] | bool | None,
-    ) -> EnsureImport:
+    ) -> Self:
         ps = self._clear_kw(packages)
         if modules is not None:
             self._modules = self._normalize_modules(modules)

@@ -129,7 +129,8 @@ def test_auto_load_refreshes_cached_workdir(tmp_path: Path):
 
         _ei(_workdir=second)
 
-        assert _ei.workdir == second
+        assert _ei.workdir == first
+        assert _ei._workdir == second
     finally:
         _EI.reset()
 
