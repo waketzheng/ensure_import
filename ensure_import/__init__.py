@@ -23,8 +23,10 @@ import subprocess  # nosec
 import sys
 import time
 import types
+from collections import Counter
 from collections.abc import Sequence
 from contextlib import AbstractContextManager, suppress
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import cached_property
@@ -43,6 +45,7 @@ logger = logging.getLogger(__name__)
 PathLike = str | Path
 
 __all__ = [
+    "Counter",
     "Decimal",
     "EnsureImport",
     "Path",
@@ -50,6 +53,7 @@ __all__ = [
     "asyncio",
     "base64",
     "contextlib",
+    "dataclass",
     "datetime",
     "functools",
     "hashlib",
@@ -102,7 +106,7 @@ class EnsureImport(AbstractContextManager):
     RETRY: Final = 30
     retry = RETRY
     inited = False
-    instances: ClassVar[dict[str, EnsureImport]] = {}
+    instances: ClassVar[dict[str, Self]] = {}
 
     @staticmethod
     def load_venv(*paths: str, verbose: bool = False) -> list[Path]:
@@ -161,7 +165,10 @@ class EnsureImport(AbstractContextManager):
         cls.instances.clear()
 
     @staticmethod
-    def _cache_key(args: str, kwargs: str) -> str:
+    def _cache_key(
+        args: tuple[PathLike | list[PathLike] | bool | Sequence[str] | None, ...],
+        kwargs: dict[str, PathLike | list[PathLike] | bool | None],
+    ) -> str:
         return repr((args, tuple(sorted(kwargs.items()))))
 
     @staticmethod
@@ -175,7 +182,7 @@ class EnsureImport(AbstractContextManager):
     def __new__(
         cls,
         *args: PathLike | list[PathLike] | bool | Sequence[str] | None,
-        **kwargs: str | bool | None,
+        **kwargs: PathLike | list[PathLike] | bool | None,
     ) -> Self:
         if (key := cls._cache_key(args, kwargs)) in cls.instances:
             return cls.instances[key]
@@ -192,7 +199,7 @@ class EnsureImport(AbstractContextManager):
         _debug: bool = False,
         _venv_dir: str | None = None,
         modules: Sequence[str] | str | None = None,
-        **kwargs: str | None,
+        **kwargs: str,
     ) -> None:
         """
         :param _sys_path: directory path to append to sys.path
@@ -224,10 +231,10 @@ class EnsureImport(AbstractContextManager):
 
     def _set_params(
         self,
-        _sys_path: str | None = None,
-        _workdir: str | None = None,
-        _install: str | None = None,
-        _no_venv: str | None = None,
+        _sys_path: PathLike | list[PathLike] | None = None,
+        _workdir: PathLike | None = None,
+        _install: bool | None = None,
+        _no_venv: bool | None = None,
         _exit: bool | None = True,
         _venv_dir: str | None = None,
     ) -> None:
@@ -258,7 +265,7 @@ class EnsureImport(AbstractContextManager):
     def __bool__(self) -> bool:
         return self.trying
 
-    def _clear_kw(self, packages: dict[str, Any]) -> None:
+    def _clear_kw(self, packages: dict[str, Any]) -> dict[str, str]:
         params = {
             "_sys_path",
             "_workdir",
@@ -274,19 +281,24 @@ class EnsureImport(AbstractContextManager):
                 k: overrides[k] if k in hints else getattr(self, k) for k in params
             }
             self._set_params(**current)
+        return {k: v for k, v in packages.items() if isinstance(v, str)}
 
     def __call__(
-        self, modules: Sequence[str] | str | None = None, **packages: str
+        self,
+        modules: Sequence[str] | str | None = None,
+        **packages: PathLike | list[PathLike] | bool | None,
     ) -> EnsureImport:
         return self.auto_load(modules=modules, **packages)
 
     def auto_load(
-        self, modules: Sequence[str] | str | None = None, **packages: str
+        self,
+        modules: Sequence[str] | str | None = None,
+        **packages: PathLike | list[PathLike] | bool | None,
     ) -> EnsureImport:
-        self._clear_kw(packages)
+        ps = self._clear_kw(packages)
         if modules is not None:
             self._modules = self._normalize_modules(modules)
-        self._mapping.update(packages)
+        self._mapping.update(ps)
         return self
 
     @property
@@ -339,6 +351,7 @@ class EnsureImport(AbstractContextManager):
         else:
             self._trying = False
             self._success = True
+        return None
 
     @staticmethod
     def _top_level_module(name: str) -> str | None:
